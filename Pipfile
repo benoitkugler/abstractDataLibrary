@@ -5,6 +5,10 @@ name = "pypi"
 
 [packages]
 "psycopg2" = "*"
+setuptools = "*"
+wheel = "*"
+twine = "*"
+abstractdatalibrary = "*"
 
 [dev-packages]
 
