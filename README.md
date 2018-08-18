@@ -1,4 +1,6 @@
-# abstractDataLibrary
+# pyDLib 
+### Python abstract Data Library
+
 
 This package provides core components to build a GUI application dealing with datas. 
 
