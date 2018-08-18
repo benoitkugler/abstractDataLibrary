@@ -26,13 +26,13 @@ def date_decoder(dic):
         try:
             d = datetime.date(**dic)
         except (TypeError, ValueError):
-            raise json.JSONDecodeError("Date corrompue !", str(dic), 1)
+            raise json.JSONDecodeError("Corrupted date format !", str(dic), 1)
     elif '__datetime__' in dic:
         dic.pop('__datetime__')
         try:
             d = datetime.datetime(**dic)
         except (TypeError, ValueError):
-            raise json.JSONDecodeError("Date et moment corrompus !", str(dic), 1)
+            raise json.JSONDecodeError("Corrupted datetime format !", str(dic), 1)
     else:
         return dic
     return d

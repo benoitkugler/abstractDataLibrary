@@ -352,4 +352,13 @@ class RequetesSQL():
         args = (value,)
         return MonoExecutant((req, args))
 
+    @staticmethod
+    def get_users():
+        return MonoExecutant(("SELECT * FROM users",))
+
+    @classmethod
+    def check_mdp_user(cls,id_user, mdp):
+        r = f"SELECT * FROM users WHERE id = {cls.mark_style} AND mdp = {cls.mark_style}"
+        return MonoExecutant((r, (id_user, mdp)))
+
 

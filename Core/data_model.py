@@ -4,6 +4,7 @@ import logging
 import re
 from typing import Optional, Union, Any
 
+import Core
 from Core.collections import Collection
 from Core.exceptions import StructureError
 from Core.formats import date_decoder, JsonEncoder
@@ -169,18 +170,6 @@ class abstractBase:
 
     CHEMIN_SAUVEGARDE = None
 
-    @staticmethod
-    def protege_data(datas_str, sens):
-        """
-        Used to crypt/decrypt data before saving locally.
-        Implements if securit is needed.
-        bytes -> str when decrypting
-        str -> bytes when crypting
-
-        :param datas_str: When crypting, str. when decrypting bytes
-        :param sens: True to crypt, False to decrypt
-        """
-        return bytes(datas_str, encoding="utf8") if sens else str(datas_str, encoding="utf8")
 
     def dumps(self):
         """Return a dictionnary of current tables"""
@@ -222,7 +211,7 @@ class abstractBase:
         try:
             with open(self.CHEMIN_SAUVEGARDE, 'rb') as f:
                 b = f.read()
-                s = self.protege_data(b, False)
+                s = Core.protege_data(b, False)
         except (FileNotFoundError, KeyError):
             logging.exception(self.__class__.__name__)
             raise StructureError("Erreur dans le chargement de la sauvegarde locale !")
@@ -241,7 +230,7 @@ class abstractBase:
         d = self.dumps()
         s = json.dumps(d, indent=4, cls=JsonEncoder)
         callback_etat("Chiffrement...", 1, 3)
-        s = self.protege_data(s, True)
+        s = Core.protege_data(s, True)
         callback_etat("Enregistrement...", 2, 3)
         try:
             with open(self.CHEMIN_SAUVEGARDE, 'wb') as f:
