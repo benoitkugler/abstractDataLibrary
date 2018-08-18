@@ -1,0 +1,399 @@
+import json
+import logging
+import os
+import re
+
+from Core import data_model, collections
+from Core.collections import Collection
+from Core.data_model import abstractAcces, abstractBase
+from Core.exceptions import StructureError
+from Core.formats import ASSOCIATION
+from Core.sql import RequetesSQL
+
+CREDENCES = None
+
+FICHIER_CREDENCES = "credences/credences"
+FICHIER_CREDENCES_DEV = "credences/credences_dev"
+
+
+def id_from_name(s):
+    s = s.lower()
+    return re.sub("[^a-zA-Z0-9]", "", s)
+
+
+def protege_data(datas_str, sens):
+    """
+    Used to crypt/decrypt data before saving locally.
+    Override if securit is needed.
+    bytes -> str when decrypting
+    str -> bytes when crypting
+
+    :param datas_str: When crypting, str. when decrypting bytes
+    :param sens: True to crypt, False to decrypt
+    """
+    return bytes(datas_str, encoding="utf8") if sens else str(datas_str, encoding="utf8")
+
+def load_credences(dev=False):
+    global CREDENCES
+    path = dev and FICHIER_CREDENCES_DEV or FICHIER_CREDENCES
+    try:
+        with open(path, 'rb') as f:
+            encrypt = f.read()
+            json_str = protege_data(encrypt, False)
+            CREDENCES = json.loads(json_str)
+    except (FileNotFoundError, json.JSONDecodeError) as e:
+        raise StructureError(f"Invalid credences file ! Details : {e}")
+    logging.info(f"Credences loaded from {path}")
+
+
+PARAMETERS_PATH = {"CONFIG": "configuration/options.json"}
+PARAMETERS = {}
+
+
+def load_configuration():
+    try:
+        for name, path in PARAMETERS.items():
+            with open("configuration/options.json", encoding='utf-8') as f:
+                dic = json.load(f)
+            PARAMETERS[name] = dic
+    except (FileNotFoundError, json.JSONDecodeError) as e:
+        raise StructureError("Invalid configuration files ! Détails : {}".format(e))
+
+
+def init_modules():
+    """Should pass to python modules init_module the required parameters"""
+    pass
+
+
+def init_all(dev=False):
+    load_credences(dev=dev)
+    load_configuration()
+    init_modules()
+
+
+class Callbacks:
+
+    def __getattr__(self, key):
+        def f(*args):
+            print("Il n'y a pas de callback enregistré sous ce nom : " + key)
+
+        return f
+
+
+class abstractInterface:
+    """Base class for the main driver of the application. GUI parts will register callbacks through
+    set_callback, add_reset_function, add_update_function.
+    Then, the interface update datas and refresh the rendering with update_rendering, reset_rendering.
+    It's up to the interface to choose between a soft update or a hard one (with reset)
+    """
+
+    ACCES = None
+    """Default acces. Used in the convenient function get_acces"""
+
+    CALLBACKS = []
+    """Functions that a GUI module should provide. 
+    Note : a callback update_toolbar should be also set (by the mai GUI application)"""
+
+    TABLE = None
+    """Default table used to build main collection (through get_all)"""
+
+    base: data_model.abstractBase
+    collection: collections.Collection
+    main: 'abstractInterInterfaces'
+
+    def __init__(self, main, permission):
+        """
+        Constructeur.
+
+        :param main: Abstract controller
+        :param permission: Integer coding permission for this module
+        """
+        self.main = main
+        self.base = main.base
+        self.permission = permission
+
+        self.sortie_erreur_GUI = print
+        self.sortie_standard_GUI = print
+
+        self.updates = []  # graphiques updates
+        self.resets = []  # graphiques resets
+
+        self.callbacks = Callbacks()  # Containers for callbacks
+
+        self.threads = []  # Active threads
+
+    def reset(self):
+        self._reset_data()
+        self._reset_render()
+
+    def update(self):
+        self._update_data()
+        self._update_render()
+
+    def _reset_data(self):
+        self.collection = self.get_all()
+
+    def _update_data(self):
+        pass
+
+    def _reset_render(self):
+        for f in self.resets:
+            f()
+        self.callbacks.update_toolbar()
+
+    def _update_render(self):
+        for f in self.updates:
+            f()
+        self.callbacks.update_toolbar()
+
+    def add_reset_function(self, f):
+        self.resets.append(f)
+
+    def remove_reset_function(self, f):
+        try:
+            self.resets.remove(f)
+        except ValueError:
+            logging.exception("Unknown reset function !")
+
+    def add_update_function(self, f):
+        self.updates.append(f)
+
+    def remove_update_function(self, f):
+        try:
+            self.updates.remove(f)
+        except ValueError:
+            logging.exception("Unknown update function !")
+
+    def set_callback(self, name, function):
+        setattr(self.callbacks, name, function)
+
+    def add_thread(self, th):
+        self.threads.append(th)
+        th.done.connect(lambda: self.threads.remove(th))
+
+    def get_acces(self, Id) -> abstractAcces:
+        return self.ACCES(self.base, Id)
+
+    def get_all(self) -> Collection:
+        table = getattr(self.base, self.TABLE)
+        c = Collection(self.ACCES(self.base, i) for i in table)
+        return c
+
+    def recherche(self, pattern, entete):
+        """Search in fields of collection and reset rendering.
+        Returns number of results."""
+        self.collection.recherche(pattern, entete)
+        self._reset_render()
+        return len(self.collection)
+
+    ##  TODO : implements threads
+    # Exécute une fonction dans un thread séparé
+    def lance_job(self, requete, sortie_erreur_GUI=None, sortie_standard_GUI=None):
+        sortie_erreur_GUI = sortie_erreur_GUI or self.sortie_erreur_GUI
+        sortie_standard_GUI = sortie_standard_GUI or self.sortie_standard_GUI
+
+        def f(r):
+            sortie_standard_GUI(r)
+            self._update()
+
+        def g(r):
+            sortie_erreur_GUI(r)
+            self._reset()
+
+        print(self.__class__.__name__, " : Execution d'une tâche...")
+        if self.main.mode_online:
+            th = threads.worker(requete, g, f)
+            self.add_thread(th)
+        else:
+            self.sortie_erreur_GUI("Mode local actif : pas de modifications à distance")
+            self._reset()
+
+    def get_labels_stats(self):
+        """Should return a list of labels describing the stats"""
+        raise NotImplementedError
+
+    def get_stats(self):
+        """Should return a list of numbers, compliant to get_labels_stats"""
+        raise NotImplementedError
+
+    def get_actions_toolbar(self):
+        """Return a list of toolbar constitution. One element has the form
+            ( identifier , callback , tooltip , enabled ).
+            This function is called every time the toolbar updates"""
+        return []
+
+    @staticmethod
+    def filtre(liste_base, criteres) -> Collection:
+        """
+        Return a filter list, bases on criteres
+
+        :param liste_base: Acces list
+        :param criteres: Criteria { `attribut`:[valeurs,...] }
+        """
+
+        def choisi(ac):
+            for cat, li in criteres.items():
+                v = ac[cat] or ASSOCIATION[cat][3]
+                if not v in li:
+                    return False
+            return True
+
+        return Collection(a for a in liste_base if choisi(a))
+
+
+class abstractInterInterfaces:
+    """
+    Entry point of abstrat tasks.
+    Responsible of loading data, preferences, configuration,...
+    """
+
+    PATH_PREFERENCES = "preferences.json"
+
+    DEBUG = {}
+    """debug modules"""
+
+    base: abstractBase
+
+    def __init__(self):
+        self.base = self.get_base()
+        self.users = {}
+        self.modules = {}  # Modules to load
+
+        self.interfaces = {}
+
+        self.preferences = self.load_preferences()
+
+        self.callbacks = Callbacks()
+
+    def get_base(self) -> abstractBase:
+        return abstractBase()
+
+    def load_preferences(self):
+        if not os.path.isfile(self.PATH_PREFERENCES):
+            logging.warning("No preferences file found !")
+            return {}
+        with open(self.PATH_PREFERENCES, "r", encoding="utf8") as f:
+            s = f.read()
+        try:
+            return json.load(s)
+        except json.JSONDecodeError:
+            logging.exception("Preferences file corrupted !")
+            return {}
+
+    def update_preferences(self, key, value):
+        self.preferences[key] = value
+        with open(self.PATH_PREFERENCES, "w", encoding="utf8") as f:
+            json.dump(self.preferences, f)
+        logging.info(f"Preference {key} updated.")
+
+
+
+    def load_remote_data(self, callback_etat=print):
+        """
+        Load remote data. On succes, build base.
+        On failure, raise :class:`~.Core.exceptions.StructureError`, :class:`~.Core.exceptions.ConnexionError`
+
+        :param callback_etat: State renderer str , int , int -> None
+        """
+        self._load_users()
+        self.base.load_from_db(callback_etat=callback_etat)
+
+    def _load_users(self):
+        r = RequetesSQL.get_users()()
+        self.users = {d["id"]: dict(d) for d in r}
+
+
+    def reset_interfaces(self):
+        """Reset data and rendering for all interfaces"""
+        for i in self.interfaces.values():
+            i.reset()
+
+    def set_callback(self, name, f):
+        """Store a callback accessible from all interfaces"""
+        setattr(self.callbacks, name, f)
+
+    def load_modules(self):
+        """Should instance interfaces and set them to interface, following `modules`"""
+        raise NotImplementedError
+
+
+
+    def export_data(self, bases, savedir):
+        """Packs and zip asked bases (from base).
+        Saves archive in given savedir"""
+        raise NotImplementedError
+
+    def import_data(self, filepath):
+        """Unziip archive. Chech integrity.
+        Overwrite current base"""
+        raise NotImplementedError
+
+    def init_modules(self, dev=False):
+        init_all(dev)
+
+    def update_credences(self, url):
+        """Download and update credences file.
+        Modules should be re-initialized after"""
+        raise NotImplementedError
+
+    def update_configuration(self, monitor=print):
+        """Download and update configuration files. Url is given in credences"""
+        raise NotImplementedError
+
+    def has_autolog(self, user_id):
+        """
+        Read auto-connection parameters and returns local password or None
+        """
+        try:
+            with open("local/init", "rb") as f:
+                s = f.read()
+                s = protege_data(s, False)
+                self.autolog = json.loads(s)["autolog"]
+        except FileNotFoundError:
+            return
+
+        mdp = self.autolog.get(user_id, None)
+        return mdp
+
+    def loggin(self, user_id, mdp, autolog):
+        """Check mdp and return True it's ok"""
+        r = RequetesSQL.check_mdp_user(user_id, mdp)
+        if r():
+            self.autolog[user_id] = autolog and mdp or False  # update auto-log params
+            self.modules = self.users[user_id]["modules"]  # load modules list
+
+            dic = {"autolog": self.autolog, "modules": self.modules}
+            s = json.dumps(dic, indent=4, ensure_ascii=False)
+            b = protege_data(s, True)
+            with open("local/init", "wb") as f:
+                f.write(b)
+
+            self.mode_online = True  # launch signal
+            return True
+        else:
+            logging.debug("Bad password !")
+
+    def loggin_local(self):
+        try:
+            with open("local/init", "rb") as f:
+                s = f.read()
+                s = protege_data(s, False)
+                modules = json.loads(s)["modules"]
+        except (KeyError, FileNotFoundError) as e:
+            raise StructureError("Last modules used can't be read !")
+        else:
+            self.modules = {k: 0 for k in modules}  # low permission
+            self.mode_online = False
+
+        self.base.load_from_local()
+
+    def launch_debug(self, mode_online):
+        self.mode_online = mode_online
+        self.modules = self.DEBUG
+        self.base.load_from_local()
+        self.load_modules()
+
+    def load_data_from_DevDb(self):
+        tables = [t for t in sorted(self.base.TABLES)]
+        l = RequetesSQL.load_data(tables)()
+        self.base.load(l)
