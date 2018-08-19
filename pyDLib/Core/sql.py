@@ -112,7 +112,7 @@ class abstractConnexion:
                         res.append(self._execute_one(cursor,*r))
 
         except self.SQL.Error as e:
-            raise StructureError(f"Erreur de traitement de la base : {e}")
+            raise StructureError(f"SQL error ! Details : \n {e}")
         else:
             self.connexion.commit()
         finally:
@@ -277,7 +277,7 @@ class abstractRequetesSQL():
             debut = """INSERT INTO {table} {ENTETE_INSERT} VALUES {BIND_INSERT} ON CONFLICT DO NOTHING"""
         else:
             debut = """INSERT INTO {table} {ENTETE_INSERT} VALUES {BIND_INSERT} RETURNING *"""
-        l = [abstractRequetesSQL.formate(debut, table=table, INSERT=d, args=d) for d in datas]
+        l = [abstractRequetesSQL.formate(debut, table=table, INSERT=d, args=d) for d in datas if d]
         return Executant(l)
 
     @classmethod

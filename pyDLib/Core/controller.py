@@ -55,6 +55,7 @@ class abstractInterface:
         self.resets = []  # graphiques resets
 
         self.callbacks = Callbacks()  # Containers for callbacks
+        self.set_callback("update_toolbar",lambda : None)
 
         self.threads = []  # Active threads
 
@@ -218,7 +219,8 @@ class abstractInterInterfaces:
             return {}
 
     def update_preferences(self, key, value):
-        self.preferences[key] = value
+        if key is not None:
+            self.preferences[key] = value
         with open(self.PATH_PREFERENCES, "w", encoding="utf8") as f:
             json.dump(self.preferences, f)
         logging.info(f"Preference {key} updated.")

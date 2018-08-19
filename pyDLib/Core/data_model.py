@@ -7,6 +7,9 @@ from typing import Optional, Union, Any
 from . import groups, sql, formats
 from . import StructureError, protege_data
 
+
+MIN_CHAR_SEARCH = 2
+
 class abstractAcces:
     """Proxy object of one entity of a table.
     properties accesed are dynamic.
@@ -129,7 +132,7 @@ class abstractDictTable(dict):
         if pattern == "*":
             return groups.Collection(self.ACCES(base, i) for i in self)
 
-        if len(pattern) >= 2:  # Besoin d'au moins 2 caractères
+        if len(pattern) >= MIN_CHAR_SEARCH:  # Besoin d'au moins 2 caractères
             regexp = re.compile(pattern, flags=re.I)
             to_string_hook = to_string_hook or self._record_to_string
             search = regexp.search
