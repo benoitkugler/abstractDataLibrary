@@ -3,8 +3,8 @@ import json
 import logging
 import os
 
-from . import data_model, groups, formats, sql
-from . import init_all, protege_data, StructureError, ConnexionError
+from . import data_model, groups, formats, sql, threads
+from . import init_all, protege_data, StructureError
 
 
 class Callbacks:
@@ -106,10 +106,6 @@ class abstractInterface:
     def set_callback(self, name, function):
         setattr(self.callbacks, name, function)
 
-    def add_thread(self, th):
-        self.threads.append(th)
-        th.done.connect(lambda: self.threads.remove(th))
-
     def get_acces(self, Id) -> data_model.abstractAcces:
         return self.ACCES(self.base, Id)
 
@@ -125,27 +121,36 @@ class abstractInterface:
         self._reset_render()
         return len(self.collection)
 
-    ##  TODO : implements threads
-    # Exécute une fonction dans un thread séparé
-    def lance_job(self, requete, sortie_erreur_GUI=None, sortie_standard_GUI=None):
-        sortie_erreur_GUI = sortie_erreur_GUI or self.sortie_erreur_GUI
-        sortie_standard_GUI = sortie_standard_GUI or self.sortie_standard_GUI
 
-        def f(r):
-            sortie_standard_GUI(r)
-            self._update()
+    def launch_background_job(self, job, on_error=None, on_succes=None):
+        """Launch the callable job in background thread.
+        Succes or failure are controlled by on_error and on_success
+        """
+        if not self.main.mode_online:
+            self.sortie_erreur_GUI("Local mode activated. Can't run background task !")
+            self.reset()
+            return
 
-        def g(r):
-            sortie_erreur_GUI(r)
-            self._reset()
+        on_error = on_error or self.sortie_erreur_GUI
+        on_succes = on_succes or self.sortie_standard_GUI
 
-        print(self.__class__.__name__, " : Execution d'une tâche...")
-        if self.main.mode_online:
-            th = threads.worker(requete, g, f)
-            self.add_thread(th)
-        else:
-            self.sortie_erreur_GUI("Mode local actif : pas de modifications à distance")
-            self._reset()
+        def thread_end(r):
+            on_succes(r)
+            self.update()
+
+        def thread_error(r):
+            on_error(r)
+            self.reset()
+
+        logging.info(f"Launching background task from interface {self.__class__.__name__} ...")
+        th = threads.worker(job, thread_error, thread_end)
+        self._add_thread(th)
+
+    def _add_thread(self, th):
+        self.threads.append(th)
+        th.done.connect(lambda: self.threads.remove(th))
+        th.error.connect(lambda : self.threads.remove(th))
+
 
     def get_labels_stats(self):
         """Should return a list of labels describing the stats"""
@@ -309,7 +314,7 @@ class abstractInterInterfaces:
             with open("local/init", "wb") as f:
                 f.write(b)
 
-            self.mode_online = True  # launch signal
+            self.mode_online = True  # launch dummySignal
             return True
         else:
             logging.debug("Bad password !")
