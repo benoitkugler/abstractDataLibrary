@@ -177,9 +177,9 @@ MODE_PAIEMENT = {"vir": "Virement", "cheque": "Chèque", "esp": "Espèces", "cb"
 """Mode de paiements"""
 
 
-class Search():
+class abstractSearch():
     """
-    Search functions, which take `objet` and a `pattern` and return a matching boolean.
+    abstractSearch functions, which take `objet` and a `pattern` and return a matching boolean.
     """
 
     REGEXP_TELEPHONE = re.compile("[^0-9]")
@@ -191,38 +191,38 @@ class Search():
 
     @staticmethod
     def in_string(objet, pattern):
-        """ Search dans une chaine, sans tenir compte de la casse. """
+        """ abstractSearch dans une chaine, sans tenir compte de la casse. """
         bool(re.search(pattern, str(objet), flags=re.I)) if objet else False
 
     @staticmethod
     def in_date(objet, pattern):
-        """ Search dans une date datetime.date"""
+        """ abstractSearch dans une date datetime.date"""
         if objet:
             pattern = re.sub(" ", '', pattern)
-            objet_str = Render.date(objet)
+            objet_str = abstractRender.date(objet)
             return bool(re.search(pattern, objet_str))
         return False
 
     @staticmethod
     def in_dateheure(objet, pattern):
-        """ Search dans une date-heure datetime.datetime (cf Render.dateheure) """
+        """ abstractSearch dans une date-heure datetime.datetime (cf abstractRender.dateheure) """
         if objet:
             pattern = re.sub(" ", '', pattern)
-            objet_str = Render.dateheure(objet)
+            objet_str = abstractRender.dateheure(objet)
             return bool(re.search(pattern, objet_str))
         return False
 
     @staticmethod
     def in_telephones(objet, pattern):
-        """ Search dans une liste de téléphones. Ignore les caractères non numérique du `pattern`. """
+        """ abstractSearch dans une liste de téléphones. Ignore les caractères non numérique du `pattern`. """
         objet = objet or ""
-        pattern = Search.REGEXP_TELEPHONE.sub('', pattern)
+        pattern = abstractSearch.REGEXP_TELEPHONE.sub('', pattern)
         if pattern == '':
             return False
         return max(bool(re.search(pattern, t)) for t in objet)
 
 
-class Render():
+class abstractRender():
     """Printing functions, which take `objet` and return a string."""
 
 
@@ -233,26 +233,26 @@ class Render():
 
     @staticmethod
     def boolen(objet):
-        """ Render d'un booléen """
+        """ abstractRender d'un booléen """
         return "Oui" if objet else "Non"
 
     @staticmethod
     def date(objet):
-        """ Render d'une date datetime.date"""
+        """ abstractRender d'une date datetime.date"""
         if objet:
             return "{}/{}/{}".format(objet.day, objet.month, objet.year)
         return ""
 
     @staticmethod
     def dateheure(objet):
-        """ Render d'une date-heure datetime.datetime au format JJ/MM/AAAAàHH:mm """
+        """ abstractRender d'une date-heure datetime.datetime au format JJ/MM/AAAAàHH:mm """
         if objet:
             return "{}/{}/{} à {:02}:{:02}".format(objet.day, objet.month, objet.year, objet.hour, objet.minute)
         return ""
 
     @staticmethod
     def telephones(objet):
-        """ Render d'une liste de numéro """
+        """ abstractRender d'une liste de numéro """
         objet = objet or []
         return " ; ".join(str(t) for t in objet)
 
@@ -283,18 +283,23 @@ class Render():
             return "Anonyme"
         return (objet[0] or "").upper() + " " + (objet[1] or "").capitalize()
 
+    @staticmethod
+    def liste(objet):
+        objet = objet or []
+        return "\n".join(" - ".join(objet[2*i:2*i+1]) for i in range(len(objet)//3) )
+
 
 
 def _type_string(label):
     """Shortcut for string like fields"""
-    return label, Search.in_string, Render.default, ""
+    return label, abstractSearch.in_string, abstractRender.default, ""
 
 
 
 
 def _type_date(label):
     """Shortcut for date like fields"""
-    return label, Search.in_date, Render.date, ""
+    return label, abstractSearch.in_date, abstractRender.date, ""
 
 
 """
@@ -320,18 +325,18 @@ ASSOCIATION = {
     'immatriculation': _type_string("Immatriculation"),
     'lieu': _type_string("Lieu"),
     'date_naissance': _type_date("Date de naissance"),
-    "date": _type_date("Date"),
+    'date': _type_date("Date"),
     'date_debut': _type_date("Date de début"),
     'date_fin': _type_date("Date de fin"),
-    'age': ("Age", Search.in_string, Render.default, 0),
-    'departement_naissance': ("Département de naissance", Search.in_string, Render.departement, "01"),
-    'sexe': ("Sexe", Search.in_string, Render.default, "M"),
-    'tels': ("Téléphone", Search.in_telephones, Render.telephones, []),
-    'code_postal': ("Code postal", Search.in_string, Render.default, "0"),
-    'annee': ("Année", Search.in_string, Render.default, 0),
-    'date_heure_modif': ("Dernière modification", Search.in_dateheure, Render.dateheure, DATETIME_DEFAULT),
-    "valeur": ("Valeur", Search.in_string, Render.euros, 0),
-    "prix": ("Prix", Search.in_string, Render.euros, 0),
+    'age': ("Age", abstractSearch.in_string, abstractRender.default, 0),
+    'departement_naissance': ("Département de naissance", abstractSearch.in_string, abstractRender.departement, "01"),
+    'sexe': ("Sexe", abstractSearch.in_string, abstractRender.default, "M"),
+    'tels': ("Téléphone", abstractSearch.in_telephones, abstractRender.telephones, []),
+    'code_postal': ("Code postal", abstractSearch.in_string, abstractRender.default, "0"),
+    'annee': ("Année", abstractSearch.in_string, abstractRender.default, 0),
+    'date_heure_modif': ("Dernière modification", abstractSearch.in_dateheure, abstractRender.dateheure, DATETIME_DEFAULT),
+    'valeur': ("Valeur", abstractSearch.in_string, abstractRender.euros, 0),
+    'prix': ("Prix", abstractSearch.in_string, abstractRender.euros, float("Inf")),
 }
 
 

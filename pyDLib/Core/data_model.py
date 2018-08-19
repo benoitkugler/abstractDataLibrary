@@ -4,12 +4,8 @@ import logging
 import re
 from typing import Optional, Union, Any
 
-import Core
-from Core.collections import Collection
-from Core.exceptions import StructureError
-from Core.formats import date_decoder, JsonEncoder
-from Core.sql import RequetesSQL, Executant
-
+from . import groups, sql, formats
+from . import StructureError, protege_data
 
 class abstractAcces:
     """Proxy object of one entity of a table.
@@ -50,14 +46,14 @@ class abstractAcces:
         else:
             self.modifications[key] = value
 
-    def save(self) -> Executant:
+    def save(self) -> sql.Executant:
         """Prepare a SQL request to save the current modifications.
         Returns actually a LIST of requests (which may be of length one).
         Note than it can include modifications on other part of the data.
         After succes, the base should be updated.
         """
-        r = RequetesSQL.update(self.TABLE, self.modifications, self.Id)
-        return Executant([r])
+        r = sql.abstractRequetesSQL.update(self.TABLE, self.modifications, self.Id)
+        return sql.Executant([r])
 
     def __str__(self):
         return f"Acces of table {self.TABLE} with id {self.Id} and modifications {self.modifications}"
@@ -124,29 +120,29 @@ class abstractDictTable(dict):
 
     def base_recherche_rapide(self, base, pattern, to_string_hook=None):
         """
-        Search pattern in string build from entries.
+        abstractSearch pattern in string build from entries.
 
         :param pattern: String to search for
         :param to_string_hook: Hook  dict -> str to map record to string. Default to _record_to_string
         :return:
         """
         if pattern == "*":
-            return Collection(self.ACCES(base, i) for i in self)
+            return groups.Collection(self.ACCES(base, i) for i in self)
 
         if len(pattern) >= 2:  # Besoin d'au moins 2 caractères
             regexp = re.compile(pattern, flags=re.I)
             to_string_hook = to_string_hook or self._record_to_string
             search = regexp.search
-            return Collection(self.ACCES(base,i) for i,p in self.items() if search(to_string_hook(p)))
+            return groups.Collection(self.ACCES(base,i) for i,p in self.items() if search(to_string_hook(p)))
 
-        return Collection()
+        return groups.Collection()
 
     def select_by_field(self, base, field, value):
         """Return collection of acces whose field equal value"""
-        return Collection(self.ACCES(base,i) for i, row in self.items() if row[field] == value)
+        return groups.Collection(self.ACCES(base,i) for i, row in self.items() if row[field] == value)
 
     def to_collection(self,base):
-        return Collection(self.ACCES(base,i) for i in self)
+        return groups.Collection(self.ACCES(base,i) for i in self)
 
 class abstractListTable(list):
     """Represents one table : list [dict_attributes]"""
@@ -166,88 +162,22 @@ class abstractListTable(list):
 class abstractBase:
     """ Tables structure. Dict { table_name : table_class }.
     table_class should inherit abstractDictTable or abstract ListTable"""
+
     TABLES = {}
 
     CHEMIN_SAUVEGARDE = None
 
-
-    def dumps(self):
-        """Return a dictionnary of current tables"""
-        return {table_name: getattr(self, table_name).dumps() for table_name in self.TABLES}
-
-    def load(self, datas):
-        """
-        Creates tables from data.
-        :param datas: one of
-            - list : list of tables content. The order is the one of sorted(TABLES.keys())
-            - dict : {table_name : table_content }
-        """
-        if type(datas) is dict:
-            for table_name, table_data in datas.items():
-                self._load_table(table_name, table_data)
-        else:
-            for i, table_name in enumerate(sorted(self.TABLES.keys())):
-                self._load_table(table_name, datas[i])
-
-    def _load_table(self, nom, data):
-        newt = self.TABLES[nom].from_data(data)
-        setattr(self, nom, newt)
-
-    def load_partiel(self, **kwargs):
-        for i, v in kwargs.items():
-            assert i in self.TABLES
-            self._load_table(i, v)
-
-    @staticmethod
-    def decode_json_str(json_str):
-        try:
-            dic = json.loads(json_str, object_hook=date_decoder)
-        except json.JSONDecodeError as e:
-            raise StructureError("Données corrompues !")
-        return dic
-
-    def load_from_local(self):
-        """Load datas from local file."""
-        try:
-            with open(self.CHEMIN_SAUVEGARDE, 'rb') as f:
-                b = f.read()
-                s = Core.protege_data(b, False)
-        except (FileNotFoundError, KeyError):
-            logging.exception(self.__class__.__name__)
-            raise StructureError("Erreur dans le chargement de la sauvegarde locale !")
-        else:
-            self.load(self.decode_json_str(s))
-            return True
-
-    def save_to_local(self, callback_etat=print):
-        """
-        Saved current in memory base to local file.
-        It's a backup, not a convenient way to update datas
-
-        :param callback_etat: state callback, taking  str,int,int as args
-        """
-        callback_etat("Aquisition...", 0, 3)
-        d = self.dumps()
-        s = json.dumps(d, indent=4, cls=JsonEncoder)
-        callback_etat("Chiffrement...", 1, 3)
-        s = Core.protege_data(s, True)
-        callback_etat("Enregistrement...", 2, 3)
-        try:
-            with open(self.CHEMIN_SAUVEGARDE, 'wb') as f:
-                f.write(s)
-        except (FileNotFoundError):
-            logging.exception(self.__class__.__name__)
-            raise StructureError("Chemin de sauvegarde introuvable !")
-
-    def load_from_db(self, callback_etat=print):
+    @classmethod
+    def load_from_db(cls, callback_etat=print):
         """Launch data fetching then load data received.
         The method load_remote_db should be overridden.
         """
-        dic = self._load_remote_db(callback_etat)
+        dic = cls._load_remote_db(callback_etat)
         callback_etat("Chargement...", 2, 3)
-        self.load(dic)
+        return cls(dic)
 
-    def _load_remote_db(self, callback_etat):
+    @classmethod
+    def _load_remote_db(cls, callback_etat):
         """Return a dictionnary of tables"""
         # TODO: think of server transfer
         # callback_etat("Requête...", 0, 3)
@@ -256,6 +186,7 @@ class abstractBase:
         # return self._parse_text_DB(s)
         return {}
 
+    @classmethod
     def _parse_text_DB(self, s):
         """Returns a dict of table interpreted from s.
         s should be Json string encoding a dict { table_name :  [fields_name,...] , [rows,... ] }"""
@@ -266,6 +197,78 @@ class abstractBase:
             new_dic[table_name] = newl
         return new_dic
 
+    @staticmethod
+    def decode_json_str(json_str):
+        try:
+            dic = json.loads(json_str, object_hook=formats.date_decoder)
+        except json.JSONDecodeError as e:
+            raise StructureError("Données corrompues !")
+        return dic
 
+    @classmethod
+    def load_from_local(cls):
+        """Load datas from local file."""
+        try:
+            with open(cls.CHEMIN_SAUVEGARDE, 'rb') as f:
+                b = f.read()
+                s = protege_data(b, False)
+        except (FileNotFoundError, KeyError):
+            logging.exception(cls.__name__)
+            raise StructureError("Erreur dans le chargement de la sauvegarde locale !")
+        else:
+            return cls(cls.decode_json_str(s))
+
+
+    def __init__(self,datas=None):
+        """
+        Creates tables from data.
+        :param datas: one of
+            - list : list of tables content. The order is the one of sorted(TABLES.keys())
+            - dict : {table_name : table_content }
+        """
+        if type(datas) is dict:
+            for table_name, table_data in datas.items():
+                table = self._get_table(table_name, table_data)
+                setattr(self, table_name, table)
+
+        elif type(datas) is list:
+            for i, table_name in enumerate(sorted(self.TABLES.keys())):
+                table = self._get_table(table_name, datas[i])
+                setattr(self, table_name, table)
+
+    def dumps(self):
+        """Return a dictionnary of current tables"""
+        return {table_name: getattr(self, table_name).dumps() for table_name in self.TABLES}
+
+
+    def _get_table(self, nom, data):
+        return self.TABLES[nom].from_data(data)
+
+    def load_partiel(self, **kwargs):
+        for i, v in kwargs.items():
+            assert i in self.TABLES
+            table = self._get_table(i, v)
+            setattr(self, i, table)
+
+
+    def save_to_local(self, callback_etat=print):
+        """
+        Saved current in memory base to local file.
+        It's a backup, not a convenient way to update datas
+
+        :param callback_etat: state callback, taking  str,int,int as args
+        """
+        callback_etat("Aquisition...", 0, 3)
+        d = self.dumps()
+        s = json.dumps(d, indent=4, cls=formats.JsonEncoder)
+        callback_etat("Chiffrement...", 1, 3)
+        s = protege_data(s, True)
+        callback_etat("Enregistrement...", 2, 3)
+        try:
+            with open(self.CHEMIN_SAUVEGARDE, 'wb') as f:
+                f.write(s)
+        except (FileNotFoundError):
+            logging.exception(self.__class__.__name__)
+            raise StructureError("Chemin de sauvegarde introuvable !")
 
 

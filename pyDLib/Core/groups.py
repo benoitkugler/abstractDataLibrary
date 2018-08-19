@@ -1,6 +1,6 @@
 """Defines list structure with sorting and search functions"""
 
-from Core.formats import ASSOCIATION
+from . import formats
 
 
 class sortableListe(list):
@@ -13,7 +13,7 @@ class sortableListe(list):
         :param str attribut: Nom du champ concerné
         :param bool order: Ordre croissant ou décroissant
         """
-        value_default = ASSOCIATION[attribut][3]
+        value_default = formats.ASSOCIATION[attribut][3]
 
         def get(d):
             return d[attribut] or value_default
@@ -100,7 +100,7 @@ class Collection(sortableListe):
             found = False
             for att in entete:
                 a = p[att]
-                fonction_recherche = ASSOCIATION[att][1]
+                fonction_recherche = formats.ASSOCIATION[att][1]
                 attr_found = bool(fonction_recherche(a, pattern))
                 if attr_found:
                     found = True

@@ -9,11 +9,15 @@ import os
 import re
 import sqlite3
 
-import psycopg2
-import psycopg2.extras
+try:
+    import psycopg2
+    import psycopg2.extras
+    has_psycopg2 = True
+except ImportError:
+    has_psycopg2 = False
 
-from Core import formats
-from Core.exceptions import ConnexionError, StructureError
+from . import formats
+from . import ConnexionError, StructureError
 
 
 def init_module(remote_credences=None,local_path=None):
@@ -25,14 +29,15 @@ def init_module(remote_credences=None,local_path=None):
         RemoteConnexion.NAME = remote_credences["DB"]["name"]
         MonoExecutant.ConnectionClass = RemoteConnexion
         Executant.ConnectionClass = RemoteConnexion
-        RequetesSQL.setup_marks("pscycopg2")
+        abstractRequetesSQL.setup_marks("pscycopg2")
     elif local_path is not None:
         LocalConnexion.PATH = local_path
         MonoExecutant.ConnectionClass = LocalConnexion
         Executant.ConnectionClass = LocalConnexion
-        RequetesSQL.setup_marks("sqlite3")
+        abstractRequetesSQL.setup_marks("sqlite3")
     else:
         raise ValueError("Sql module should be init with one of remote or local mode !")
+    logging.info("Sql module initialized.")
 
 
 class MonoExecutant(tuple):
@@ -131,7 +136,7 @@ class LocalConnexion(abstractConnexion):
     REGEXP_ID = re.compile("id =\s*(\w*)",flags=re.I)
 
     def __init__(self,autocommit=False):
-        DSN = os.path.join(self.PATH,"db.sqlite3")
+        DSN = os.path.join(self.PATH,"db.sqlite")
         super().__init__(DSN,autocommit,detect_types=self.SQL.PARSE_DECLTYPES)
 
     def set_autocommit(self,autocommit):
@@ -162,8 +167,9 @@ class LocalConnexion(abstractConnexion):
 class RemoteConnexion(abstractConnexion):
     """Connexion to local PostgreSQL DB"""
 
-    SQL = psycopg2
-    connexion : psycopg2._psycopg.connection
+    SQL = None
+    if has_psycopg2:
+        SQL = psycopg2
 
     HOST = ""
     USER = ""
@@ -181,44 +187,6 @@ class RemoteConnexion(abstractConnexion):
 
 
 
-### decodage json from DB ##
-# @classmethod
-# def load(cls, file):
-#     """decode and  load fileobject. base implementation is json loading."""
-#     try:
-#         data = json.load(file, object_hook=date_decoder)
-#     except json.decoder.JSONDecodeError as e:
-#         raise StructureError(f"Impossible de lire la base {cls.__name__}. Détails : \n\t{e}")
-#     return data
-#
-# @classmethod
-# def from_local_DB(cls):
-#     """Uses class PATH."""
-#     if not os.path.isfile(cls.PATH):
-#         logging.warning("Aucune base de données {}".format(cls.__name__))
-#         data = None
-#     else:
-#         with open(cls.PATH, encoding='utf8') as f:
-#             try:
-#                 data = cls.load(f)
-#             except StructureError as e:
-#                 logging.error(str(e))
-#                 data = None
-#     return cls(data)
-#
-# @classmethod
-# def from_fileobject(cls, fo, safe=True):
-#     try:
-#         data = cls.load(fo)
-#     except StructureError as e:
-#         if safe:
-#             raise
-#         else:
-#             logging.error(str(e))
-#             data = None
-#     return cls(data)
-
-
 def cree_local_DB(scheme):
     """Create emmpt DB according to the given scheme : dict { table : [ (column_name, column_type), .. ]}
     Usefull at installation of application (and for developement)
@@ -226,7 +194,7 @@ def cree_local_DB(scheme):
     conn = LocalConnexion()
     req = ""
     for table, fields in scheme.items():
-        req += f"DROP TABLE {table};"
+        req += f"DROP TABLE IF EXISTS {table};"
         req_fields = ", ".join(f'{c_name} {c_type}' for c_name, c_type in fields)
         req += f"""CREATE TABLE {table} (  {req_fields} ) ;"""
     cur = conn.cursor()
@@ -236,7 +204,9 @@ def cree_local_DB(scheme):
     logging.info("Database created with succes.")
 
 
-class RequetesSQL():
+
+
+class abstractRequetesSQL():
     """Functions to build requests. To actually execute them, call them.
     The syntax is compliant with PostgreSQL standards, but it can be as well used with SQLite.
     To support the RETURNING operation, the resquest is replaced at execution by two requests, the later selecting and returning the data. This is only possible if RETURNING * is at the end of the requests !
@@ -250,7 +220,6 @@ class RequetesSQL():
     def setup_marks(cls,mode):
         cls.mark_style = "%s" if mode == "psycopg2" else "?"
         cls.named_style = "%({})s" if mode == "psycopg2" else ":{}"
-
 
     @classmethod
     def placeholders(cls,dic):
@@ -273,7 +242,7 @@ class RequetesSQL():
         Utilise Json. Attention à None : il faut laisser None et non pas null"""
         d = {}
         for k, v in dic.items():
-            if type(v) in RequetesSQL.TYPES_PERMIS:
+            if type(v) in abstractRequetesSQL.TYPES_PERMIS:
                 d[k] = v
             else:
                 try:
@@ -286,14 +255,13 @@ class RequetesSQL():
     @staticmethod
     def formate(req, SET=(), table=None, INSERT=(), INSERT2=(), args=None):
         args = args or {}
-        SET = RequetesSQL.placeholders_set(SET)
-        ENTETE_INSERT, BIND_INSERT = RequetesSQL.placeholders(INSERT)
-        ENTETE_INSERT2, BIND_INSERT2 = RequetesSQL.placeholders(INSERT2)
+        SET = abstractRequetesSQL.placeholders_set(SET)
+        ENTETE_INSERT, BIND_INSERT = abstractRequetesSQL.placeholders(INSERT)
+        ENTETE_INSERT2, BIND_INSERT2 = abstractRequetesSQL.placeholders(INSERT2)
         req = req.format(table=table, SET=SET, ENTETE_INSERT=ENTETE_INSERT, BIND_INSERT=BIND_INSERT,
                          ENTETE_INSERT2=ENTETE_INSERT2, BIND_INSERT2=BIND_INSERT2)
-        args = RequetesSQL.jsonise(args)
+        args = abstractRequetesSQL.jsonise(args)
         return (req, args)
-
 
 
     @staticmethod
@@ -309,7 +277,7 @@ class RequetesSQL():
             debut = """INSERT INTO {table} {ENTETE_INSERT} VALUES {BIND_INSERT} ON CONFLICT DO NOTHING"""
         else:
             debut = """INSERT INTO {table} {ENTETE_INSERT} VALUES {BIND_INSERT} RETURNING *"""
-        l = [RequetesSQL.formate(debut, table=table, INSERT=d, args=d) for d in datas]
+        l = [abstractRequetesSQL.formate(debut, table=table, INSERT=d, args=d) for d in datas]
         return Executant(l)
 
     @classmethod
@@ -317,7 +285,7 @@ class RequetesSQL():
         """ Update row with Id from table. Set fields given by dic."""
         if dic:
             req = "UPDATE {table} SET {SET} WHERE id = " + cls.named_style.format('__id') +  " RETURNING * "
-            r = RequetesSQL.formate(req, SET=dic, table=table, args=dict(dic, __id=Id))
+            r = abstractRequetesSQL.formate(req, SET=dic, table=table, args=dict(dic, __id=Id))
             return MonoExecutant(r)
         return MonoExecutant()
 
@@ -329,7 +297,7 @@ class RequetesSQL():
             req = """ INSERT INTO {table} {ENTETE_INSERT} VALUES {BIND_INSERT} ON CONFLICT DO NOTHING RETURNING *"""
         else:
             req = """ INSERT INTO {table} {ENTETE_INSERT} VALUES {BIND_INSERT} RETURNING *"""
-        r = RequetesSQL.formate(req, table=table, INSERT=dic, args=dic)
+        r = abstractRequetesSQL.formate(req, table=table, INSERT=dic, args=dic)
         return MonoExecutant(r)
 
     @staticmethod

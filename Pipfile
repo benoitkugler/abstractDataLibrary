@@ -8,7 +8,6 @@ name = "pypi"
 setuptools = "*"
 wheel = "*"
 twine = "*"
-abstractdatalibrary = "*"
 
 [dev-packages]
 
