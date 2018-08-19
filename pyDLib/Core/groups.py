@@ -94,14 +94,15 @@ class Collection(sortableListe):
         :param entete: Fields to look into
         :return: Nothing. The collection is changed in place
         """
+
         new_liste = []
+        print(pattern)
         for p in self:
             d_font = {}
             found = False
             for att in entete:
-                a = p[att]
                 fonction_recherche = formats.ASSOCIATION[att][1]
-                attr_found = bool(fonction_recherche(a, pattern))
+                attr_found = bool(fonction_recherche(p[att], pattern))
                 if attr_found:
                     found = True
                 d_font[att] = attr_found

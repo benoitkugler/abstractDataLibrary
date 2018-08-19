@@ -215,18 +215,17 @@ class abstractInterInterfaces:
             logging.warning("No preferences file found !")
             return {}
         with open(self.PATH_PREFERENCES, "r", encoding="utf8") as f:
-            s = f.read()
-        try:
-            return json.load(s)
-        except json.JSONDecodeError:
-            logging.exception("Preferences file corrupted !")
-            return {}
+            try:
+                return json.load(f,object_hook=formats.date_decoder)
+            except json.JSONDecodeError:
+                logging.exception("Preferences file corrupted !")
+                return {}
 
     def update_preferences(self, key, value):
         if key is not None:
             self.preferences[key] = value
         with open(self.PATH_PREFERENCES, "w", encoding="utf8") as f:
-            json.dump(self.preferences, f)
+            json.dump(self.preferences, f, cls=formats.JsonEncoder)
         logging.info(f"Preference {key} updated.")
 
 

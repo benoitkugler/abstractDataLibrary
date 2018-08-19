@@ -192,7 +192,7 @@ class abstractSearch():
     @staticmethod
     def in_string(objet, pattern):
         """ abstractSearch dans une chaine, sans tenir compte de la casse. """
-        bool(re.search(pattern, str(objet), flags=re.I)) if objet else False
+        return bool(re.search(pattern, str(objet), flags=re.I)) if objet else False
 
     @staticmethod
     def in_date(objet, pattern):
