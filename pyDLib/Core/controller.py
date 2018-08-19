@@ -121,8 +121,7 @@ class abstractInterface:
         self._reset_render()
         return len(self.collection)
 
-
-    def launch_background_job(self, job, on_error=None, on_succes=None):
+    def launch_background_job(self, job, on_error=None, on_success=None):
         """Launch the callable job in background thread.
         Succes or failure are controlled by on_error and on_success
         """
@@ -132,10 +131,10 @@ class abstractInterface:
             return
 
         on_error = on_error or self.sortie_erreur_GUI
-        on_succes = on_succes or self.sortie_standard_GUI
+        on_success = on_success or self.sortie_standard_GUI
 
         def thread_end(r):
-            on_succes(r)
+            on_success(r)
             self.update()
 
         def thread_error(r):
@@ -314,7 +313,7 @@ class abstractInterInterfaces:
             with open("local/init", "wb") as f:
                 f.write(b)
 
-            self.mode_online = True  # launch dummySignal
+            self.mode_online = True  # authorization to execute bakground tasks
             return True
         else:
             logging.debug("Bad password !")
