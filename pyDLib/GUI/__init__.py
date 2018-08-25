@@ -6,7 +6,7 @@ import pkgutil
 from typing import Union, List
 
 from PyQt5.QtGui import QColor, QIcon
-from PyQt5.QtWidgets import QToolButton, QDialog
+from PyQt5.QtWidgets import QToolButton, QDialog, QLayout
 
 IMAGES_PATH = ""
 
@@ -54,6 +54,7 @@ def load_options():
         PARAMETERS[name] = style + "\n" + style_add
 
 
+### ------------------ Helpers ------------------ ###
 
 class Color(QColor):
 
@@ -102,6 +103,9 @@ class AddIcon(abstractIcon):
 class DeleteIcon(abstractIcon):
     IMAGE = "delete.png"
 
+class ValidIcon(abstractIcon):
+    IMAGE = "ok.png"
+
 
 class ButtonIcon(QToolButton):
 
@@ -120,3 +124,14 @@ class Arrow(QIcon):
         super().__init__(os.path.join(IMAGES_PATH, self.PATH_UP if is_up else self.PATH_DOWN))
 
 
+
+def clear_layout(layout: QLayout) -> None:
+    """Clear the layout off all its components"""
+    if layout is not None:
+        while layout.count():
+            item = layout.takeAt(0)
+            widget = item.widget()
+            if widget is not None:
+                widget.deleteLater()
+            else:
+                clear_layout(item.layout())

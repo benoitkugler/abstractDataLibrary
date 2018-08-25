@@ -4,7 +4,7 @@ from typing import List, Tuple
 from PyQt5.QtCore import Qt, pyqtSignal, QAbstractTableModel, QModelIndex
 from PyQt5.QtGui import QFont, QBrush, QPaintEvent, QPainter
 from PyQt5.QtWidgets import QAbstractItemView, QTableView, \
-    QAbstractScrollArea, QFrame, QLabel, QGridLayout, QLineEdit, QPushButton
+    QAbstractScrollArea, QFrame, QLabel, QGridLayout, QLineEdit, QPushButton, QHeaderView, QVBoxLayout, QSizePolicy
 
 from pyDLib.Core.groups import sortableListe
 from . import Color, Arrow, DeleteIcon, PARAMETERS, fenetres
@@ -97,9 +97,12 @@ class abstractModel(QAbstractTableModel):
     def columnCount(self, parent=None, *args, **kwargs):
         return len(self.header)
 
+    def _acces_data(self,acces,attr):
+        return acces[attr] if attr is not None else acces
+
     def data(self, index : QModelIndex, role=None):
         acces , attr  = self.collection[index.row()] ,  self.header[index.column()]
-        value = acces[attr]
+        value = self._acces_data(acces,attr)
         info = self.collection.get_info(key=index.row())
 
         return self.RENDERER.data(attr, value, info, role)
@@ -163,9 +166,12 @@ class abstractModel(QAbstractTableModel):
 
 
 class InternalDataModel(abstractModel):
-    """This model stores the data by itself : the data shouldn't be modified from outside."""
+    """This model stores the data by itself : the data shouldn't be modified from outside.
+    If header is None, directly acces item data.
+    """
 
     def __init__(self, collection: groups.sortableListe, header : List):
+        header = header if header is not None else [None]
         super().__init__(header)
         self.collection = collection
 
@@ -182,6 +188,7 @@ class InternalDataModel(abstractModel):
         row = index.row() if hasattr(index, "row") else index
         self.collection[row] = new_item
         self.dataChanged.emit(self.index(row, 0), self.index(row, self.rowCount() - 1))
+
 
 
 class ExternalDataModel(abstractModel):
@@ -331,6 +338,11 @@ class abstractList(QTableView):
         """Default implementation removes the line"""
         self.model().remove_line(section)
 
+    def get_current_item(self):
+        """Returns (first) selected item or None"""
+        l = self.selectedIndexes()
+        if len(l) > 0:
+            return self.model().get_item(l[0])
 
 class MultiSelectList(abstractList):
     """Add data_changed signal, and get_data, set_data methods"""
@@ -379,7 +391,25 @@ class SearchList(abstractList):
         self.selected.emit(acces)
 
 
+class SimpleList(abstractList):
+    """Uses an InternelDataModel.
+    If header is None, doesn't show header, set only one column, and acces data directly at item. """
 
+    SHOW_GRID = False
+
+    def __init__(self,liste,header,is_editable):
+        model = InternalDataModel(liste,header)
+        super().__init__(model)
+        self.setShowGrid(self.SHOW_GRID)
+        self.horizontalHeader().setVisible(header is not None)
+        self.verticalHeader().setVisible(is_editable)
+        self.setMinimumHeight(50)
+        self.setSizeAdjustPolicy(QAbstractScrollArea.AdjustToContents)
+        self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
+        self.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeToContents)
+
+        self.setWordWrap(True)
+        self.setTextElideMode(Qt.ElideMiddle)
 
 
 class abstractMainList(abstractList):
@@ -400,37 +430,12 @@ class abstractMainList(abstractList):
         model = ExternalDataModel(self.get_collection, self.set_data, self.ENTETE)
         return model
 
-    def get_collection(self):
-        return []
+    def get_collection(self) -> groups.Collection:
+        return groups.Collection()
 
     def set_data(self, acces, attribut, value):
-        pass
+        raise NotImplementedError
 
-
-class CadreView(QFrame):
-    view: abstractList
-
-    def __init__(self, view, titre):
-        super().__init__()
-        self.view = view
-
-        label = QLabel(titre)
-        label.setObjectName("titre-liste")
-        self.label = label
-        layout = QGridLayout(self)
-        layout.setContentsMargins(11, 0, 11, 11)
-        layout.addWidget(label, 0, 0)
-        layout.setColumnStretch(0, 2)
-        wd = self.widget_haut_droit()
-        if wd is not None:
-            layout.addWidget(wd, 0, 1)
-        layout.addWidget(self.view, 1, 0, 1, 2)
-
-    def widget_haut_droit(self):
-        return
-
-    def set_title(self, t):
-        self.label.setText(t)
 
 
 
@@ -487,6 +492,7 @@ class abstractBaseAccesId(abstractAccesId):
         super(abstractBaseAccesId, self).__init__(search_hook)
 
 
+
 class BoutonAccesId(QPushButton):
     """Button given acces to search window"""
 
@@ -495,6 +501,9 @@ class BoutonAccesId(QPushButton):
     WINDOW = None
     """Search window class, inherits abstractBaseAccesId.
     Must implements """
+
+    AS_ACCES = False
+    """If true, returns and emit an acces object instead of an Id"""
 
     acces : data_model.abstractAcces
 
@@ -531,6 +540,8 @@ class BoutonAccesId(QPushButton):
         self.setText(label)
 
     def get_data(self):
+        if self.AS_ACCES:
+            return self.acces
         return self.acces.Id
 
     def set_data(self,Id):
@@ -539,246 +550,106 @@ class BoutonAccesId(QPushButton):
         self.set_label()
 
 
+### ------------------ Misc ------------------ ###
 
+class CadreView(QFrame):
+    """Add controls on view"""
 
+    view: abstractList
 
-
-
-class viewListe(QTableView):
-
-    def __init__(self, model, is_editable):
+    def __init__(self, view, titre):
         super().__init__()
-        self.setObjectName("liste-attribut")
-        self.setShowGrid(False)
-        self.setModel(model)
-        self.horizontalHeader().setVisible(False)
-        self.verticalHeader().setVisible(is_editable)
-        self.verticalHeader().sectionClicked.connect(model.supprime)
-        self.setMinimumHeight(50)
-        self.setSizeAdjustPolicy(QAbstractScrollArea.AdjustToContents)
-        ##Attention, cette fonction est gourmande. A éviter pour des listes de plus 1000 entrées
-        self.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeToContents)
+        self.view = view
+
+        label = QLabel(titre)
+        label.setObjectName("list-view-title")
+        self.label = label
+        layout = QGridLayout(self)
+        layout.setContentsMargins(11, 0, 11, 11)
+        layout.addWidget(label, 0, 0)
+        layout.setColumnStretch(0, 2)
+        wd = self.widget_haut_droit()
+        if wd is not None:
+            layout.addWidget(wd, 0, 1)
+        layout.addWidget(self.view, 1, 0, 1, 2)
+
+    def widget_haut_droit(self):
+        """Should return control widgets"""
+        return
+
+    def set_title(self, t):
+        self.label.setText(t)
 
 
-class abstractListeModel(QAbstractTableModel):
-
-    def __init__(self, liste, is_editable, base):
-        super().__init__()
-        self.liste = liste or []
-        self.is_editable = is_editable
-        self.base = base
-        self.set_data(liste)
-
-    def rowCount(self, index):
-        return len(self.liste or [])
-
-    def columnCount(self, index):
-        return 1
-
-    def headerData(self, section, orientation, role):
-        if orientation == Qt.Vertical:
-            if role == Qt.DecorationRole:
-                return QPixmap(CHEMIN_IMAGES + "delete.png")
-            elif role == Qt.ToolTipRole:
-                return "Supprimer"
-        else:
-            return super().headerData(section, orientation, role)
-
-    def set_data(self, liste):
-        self.beginResetModel()
-        self.liste = liste or []
-        self.endResetModel()
-
-    def supprime(self, row):
-        self.beginResetModel()
-        del self.liste[row]
-        self.endResetModel()
-
-    def ajoute(self, element):
-        self.beginResetModel()
-        self.liste.append(element)
-        self.endResetModel()
 
 
-class modelTels(abstractListeModel):
-
-    def __init__(self, liste, is_editable, base):
-        super().__init__(liste, is_editable, None)
-
-    def data(self, index, role):
-        if role == Qt.DisplayRole:
-            return self.liste[index.row()]
 
 
-class abstractBoutonNouveau(QFrame):
-    ajoute = pyqtSignal(object)
-    LABEL = "Ajouter"
 
-    def __init__(self, is_editable):
-        super().__init__()
-        self.is_editable = is_editable
-        self.setLayout(QHBoxLayout())
-        self.set_button()
-
-    def set_button(self):
-        b = QPushButton(self.LABEL)
-        b.clicked.connect(self.enter_edit)
-        b.setEnabled(self.is_editable)
-        self.layout().addWidget(b)
-
-    def enter_edit(self):
-        pass
-
-
-class NouveauTelephone(abstractBoutonNouveau):
-    LABEL = "Ajouter un numéro"
-
-    def __init__(self, is_editable, base):
-        super().__init__(is_editable)
-
-    def clear(self):
-        clear_layout(self.layout())
-
-    def sort_edit(self):
-        self.clear()
-        self.set_button()
-
-    def enter_edit(self):
-        self.clear()
-        line_button = self.layout()
-        self.entree = QLineEdit()
-        self.entree.setObjectName("nouveau-numero-tel")
-        self.entree.setAlignment(Qt.AlignCenter)
-        self.entree.setPlaceholderText("Ajouter...")
-        add = QPushButton()
-        add.setIcon(QIcon(QPixmap("images/ok.png")))
-        add.clicked.connect(self.on_add)
-        self.entree.editingFinished.connect(self.on_add)
-        line_button.addWidget(self.entree)
-        line_button.addWidget(add)
-        line_button.setStretch(0, 3)
-        line_button.setStretch(1, 1)
-
-    def on_add(self):
-        num = self.entree.text()
-        num = num.replace(" ", '')
-        if IS_TELEPHONE(num):
-            self.entree.clear()
-            self.entree.setPlaceholderText("Ajouter...")
-            self.ajoute.emit(num)
-            self.sort_edit()
-        else:
-            self.entree.clear()
-            self.entree.setPlaceholderText("Numéro invalide")
-
-
-class NouvelEnfant(abstractBoutonNouveau):
-    LABEL = "Ajouter un enfant"
-
-    def __init__(self, is_editable, base):
-        self.base = base
-        super().__init__(is_editable)
-
-    def set_button(self):
-        b = acces_ids.BoutonAjoutIdPersonne("Ajouter un enfant", True, self.base)
-        b.setEnabled(self.is_editable)
-        b.data_changed.connect(self.ajoute.emit)
-        self.layout().addWidget(b)
-
-
-class abstractBaseListe(QFrame):
-    MODEL = None
-    BOUTON_NOUVEAU = None
+class abstractMutableList(QFrame):
+    """Provides a view and acces to add or remove and element."""
 
     data_changed = pyqtSignal(list)
 
-    def __init__(self, liste, is_editable, base=None):
-        super().__init__()
-        model = self.MODEL(liste, is_editable, base)
-        self.view = viewListe(model, is_editable)
+    LIST_PLACEHOLDER = "No items."
+    LIST_HEADER = []
+    BOUTON = None
 
-        model.modelReset.connect(lambda: self.data_changed.emit(model.liste))
+    def __init__(self, collection, is_editable, *button_args):
+        super().__init__()
+        collection = sortableListe() if collection is None else collection
+        self.view = SimpleList(collection,self.LIST_HEADER ,is_editable)
+        self.view.model().modelReset.connect(lambda: self.data_changed.emit(self.get_data()))
+        self.view.model().dataChanged.connect(lambda: self.data_changed.emit(self.get_data()))
+
+        add_button = self.BOUTON(is_editable,*button_args)
+        add_button.data_changed.connect(self.on_add)
 
         layout = QVBoxLayout(self)
         layout.addWidget(self.view)
+        layout.addWidget(add_button)
 
-        if self.BOUTON_NOUVEAU and is_editable:
-            nouveau = self.BOUTON_NOUVEAU(is_editable, base)
-            nouveau.ajoute.connect(model.ajoute)
-            layout.addWidget(nouveau)
+    def on_add(self, item):
+        self.view.model().beginResetModel()
+        self.view.model().collection.append(item)
+        self.view.model().endResetModel()
 
-    def set_data(self, liste):
-        self.view.model().set_data(liste)
-
-    def get_data(self):
-        return list(self.view.model().liste)
-
-
-class Tels(abstractBaseListe):
-    MODEL = modelTels
-    BOUTON_NOUVEAU = NouveauTelephone
-
-
-class DateHeure(QLabel):
-    data_changed = pyqtSignal(object)
-
-    def __init__(self, dh, is_editable):
-        dh = dh or [1900, 1, 1, 1, 1]
-        super().__init__(formats.Affichage.dateheure(dh))
-
-
-class Texte(QPlainTextEdit):
-    data_changed = pyqtSignal(str)
-
-    def __init__(self, text, is_editable, placeholder="Informations complémentaires"):
-        super().__init__(text)
-        self.setSizeAdjustPolicy(QPlainTextEdit.AdjustToContentsOnFirstShow)
-        self.setMinimumHeight(20)
-        self.setPlaceholderText(placeholder)
-        self.setReadOnly(not is_editable)
-        self.textChanged.connect(lambda: self.data_changed.emit(self.toPlainText()))
+    def set_data(self, collection):
+        self.view.model().set_collection(collection)
 
     def get_data(self):
-        return self.toPlainText()
-
-    def set_data(self, text):
-        self.setPlainText(text)
+        return self.view.model().collection
 
 
-## Affiche les coorddonnées des parents
-# Utilisé pour surcharger les détails d'un enfant
-class InfosParents(QFrame):
-
-    def __init__(self, coord_parents, is_editable):
-        super().__init__()
-        self.setLayout(QVBoxLayout())
-        self.construit(coord_parents)
-
-    def construit(self, coord_parents):
-        layout = self.layout()
-        for c in coord_parents:
-            label_parent, champs = c
-            titre = QLabel(label_parent)
-            titre.setObjectName("titre-parent")
-            titre.setAlignment(Qt.AlignCenter)
-            layout.addWidget(titre)
-            bloc = QFormLayout()
-            for (attr, valeur) in champs:
-                label = formats.ASSOCIATION[attr][0]
-                w = ASSOCIATION[attr][3](valeur, False)
-                bloc.addRow(label, w)
-            layout.addLayout(bloc)
-
-    def clear(self):
-        clear_layout(self.layout())
-
-    def set_data(self, coord_parents):
-        self.clear()
-        self.construit(coord_parents)
 
 
-def Adresse(value, is_editable):
-    return Texte(value, is_editable, placeholder="")
+# class abstractCollectionView(abstractList):
+#     """Crée un modèle interne à partir de l'entête"""
+#
+#     PLACEHOLDER = None
+#     VERTICAL_HEADER_VISIBLE = True
+#     MIN_HEIGHT = 200
+#     ENTETE = None
+#
+#
+#     def __init__(self, collection):
+#         model = modelInterne(collection, self.ENTETE)
+#         super().__init__(model)
+#         self.setWordWrap(True)
+#         self.setTextElideMode(Qt.ElideMiddle)
+#         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
+#
+#     def get_current_item(self):
+#         """Renvoi l'acces sélectionné ou None"""
+#         l = self.selectedIndexes()
+#         if len(l) > 0:
+#             return self.model().get_item(l[0])
+#
+
+
+
+
+
 
 
 class PseudoAccesCategorie(dict):
@@ -867,28 +738,6 @@ class CategoriesProduit(QFrame):
     def set_data(self, l):
         self.liste.set_data(l)
 
-
-class abstractCollectionView(abstractList):
-    """Crée un modèle interne à partir de l'entête"""
-
-    PLACEHOLDER = None
-    VERTICAL_HEADER_VISIBLE = True
-    MIN_HEIGHT = 200
-    ENTETE = None
-
-
-    def __init__(self, collection):
-        model = modelInterne(collection, self.ENTETE)
-        super().__init__(model)
-        self.setWordWrap(True)
-        self.setTextElideMode(Qt.ElideMiddle)
-        self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
-
-    def get_current_acces(self):
-        """Renvoi l'acces sélectionné ou None"""
-        l = self.selectedIndexes()
-        if len(l) > 0:
-            return self.model().get_item(l[0])
 
 
 
