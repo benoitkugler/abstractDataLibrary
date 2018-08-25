@@ -1,10 +1,13 @@
-"""Implements widgets to visualize and modify basic fields. (french language)"""
+"""Implements widgets to visualize and modify basic fields. (french language)
+ASSOCIATION should be updated with custom wigets.
+"""
 import datetime
 import re
+from collections import defaultdict
 
 from PyQt5.QtCore import pyqtSignal, Qt
 from PyQt5.QtWidgets import QFrame, QHBoxLayout, QPushButton, QLineEdit, QLabel, QComboBox, QSpinBox, QDoubleSpinBox, \
-    QCheckBox, QCompleter, QGridLayout, QVBoxLayout
+    QCheckBox, QCompleter, QGridLayout, QVBoxLayout, QPlainTextEdit
 
 from . import list_views, clear_layout, ValidIcon
 from ..Core import formats
@@ -121,7 +124,6 @@ class abstractEnum(QLabel):
     def get_data(self):
         return self.value
 
-
 class abstractEnumEditable(QComboBox):
     data_changed = pyqtSignal(object)
 
@@ -151,6 +153,37 @@ class abstractEnumEditable(QComboBox):
 
     def get_data(self):
         return self.currentData()
+
+
+
+class DepartementFixe(abstractEnum):
+    VALEUR_TO_LABEL = formats.DEPARTEMENTS
+    DEFAULT_VALUE = "00"
+
+
+class DepartementEditable(abstractEnumEditable):
+    VALEURS_LABELS = sorted((i, i + " " + v) for i, v in formats.DEPARTEMENTS.items())
+    DEFAULT_VALUE = '00'
+
+
+class SexeFixe(abstractEnum):
+    VALEUR_TO_LABEL = formats.SEXES
+    DEFAULT_VALUE = "F"
+
+
+class SexeEditable(abstractEnumEditable):
+    VALEURS_LABELS = sorted((k, v) for k, v in formats.SEXES.items())
+    DEFAULT_VALUE = "F"
+
+
+class ModePaiementFixe(abstractEnum):
+    VALEUR_TO_LABEL = formats.MODE_PAIEMENT
+    DEFAULT_VALUE = "cheque"
+
+
+class ModePaiementEditable(abstractEnumEditable):
+    VALEURS_LABELS = sorted([(k, v) for k, v in formats.MODE_PAIEMENT.items()])
+    DEFAULT_VALUE = "cheque"
 
 
 
@@ -184,6 +217,9 @@ class DefaultFixe(abstractSimpleField):
 
 class DateFixe(abstractSimpleField):
     FONCTION_AFF = staticmethod(formats.abstractRender.date)
+
+class DateHeureFixe(QLabel):
+    FONCTION_AFF = staticmethod(formats.abstractRender.dateheure)
 
 
 
@@ -379,6 +415,29 @@ class DateRange(QFrame):
         self.fin.set_data(v[1])
 
 
+
+class Texte(QPlainTextEdit):
+    data_changed = pyqtSignal(str)
+
+    def __init__(self, text, is_editable, placeholder="Informations complémentaires"):
+        super().__init__(text)
+        self.setSizeAdjustPolicy(QPlainTextEdit.AdjustToContentsOnFirstShow)
+        self.setMinimumHeight(20)
+        self.setPlaceholderText(placeholder)
+        self.setReadOnly(not is_editable)
+        self.textChanged.connect(lambda: self.data_changed.emit(self.toPlainText()))
+
+    def get_data(self):
+        return self.toPlainText()
+
+    def set_data(self, text):
+        self.setPlainText(text)
+
+
+
+
+
+
 ###---------------------------- Wrappers---------------------------- ###
 
 def _get_widget(classe, value):
@@ -410,3 +469,65 @@ def Pourcent(value, is_editable):
 def Date(value, is_editable):
     return _get_widget(is_editable and DateEditable or DateFixe, value)
 
+
+def Departement(value, is_editable):
+    return _get_widget(is_editable and DepartementEditable or DepartementFixe, value)
+
+
+def Sexe(value, is_editable):
+    return _get_widget(is_editable and SexeEditable or SexeFixe, value)
+
+
+def Adresse(value, is_editable):
+    return Texte(value, is_editable, placeholder="")
+
+
+def ModePaiement(value, is_editable):
+    return _get_widget(is_editable and ModePaiementEditable or ModePaiementFixe, value)
+
+
+def DateHeure(value, is_editable):
+    if is_editable:
+        raise NotImplementedError("No editable datetime widget !")
+    w = DateHeureFixe()
+    w.set_value(value)
+    return w
+
+"""Correspondance field -> widget (callable)"""
+TYPES_WIDGETS = defaultdict(
+    lambda: Default,
+    date_naissance=Date,
+    departement_naissance=Departement,
+    sexe=Sexe,
+    tels=Tels,
+    adresse=Adresse,
+    date_debut=Date,
+    date_fin=Date,
+    date_arrivee=Date,
+    date_depart=Date,
+    date_emission=Date,
+    date_reception=Date,
+    nb_places=Entier,
+    nb_places_reservees=Entier,
+    age_min=Entier,
+    age_max=Entier,
+    acquite=Booleen,
+    is_acompte=Booleen,
+    is_remboursement=Booleen,
+    reduc_special=Euros,
+    acompte_recu=Euros,
+    valeur=Euros,
+    total=Euros,
+    prix=Euros,
+    date_heure_modif=DateHeure,
+    date_reglement=Date,
+    date_encaissement=Date,
+    info=Texte,
+    message=Texte,
+    mode_paiement=ModePaiement,
+)
+
+ASSOCIATION = {}
+for k, v in formats.ASSOCIATION.items():
+    t = TYPES_WIDGETS[k]
+    ASSOCIATION[k] = (v[0], v[1], v[2], t, v[3])
