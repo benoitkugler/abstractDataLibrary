@@ -1,4 +1,4 @@
-"""Implements controller objects : interfaces wrapper by interInterfaces """
+"""Implements theory_main objects : interfaces wrapper by interInterfaces """
 import json
 import logging
 import os
@@ -41,7 +41,7 @@ class abstractInterface:
         """
         Constructeur.
 
-        :param main: Abstract controller
+        :param main: Abstract theory_main
         :param permission: Integer coding permission for this module
         """
         self.main = main

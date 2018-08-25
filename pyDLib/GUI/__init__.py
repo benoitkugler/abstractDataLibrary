@@ -6,7 +6,7 @@ import pkgutil
 from typing import Union, List
 
 from PyQt5.QtGui import QColor, QIcon
-from PyQt5.QtWidgets import QToolButton, QDialog, QLayout
+from PyQt5.QtWidgets import QToolButton, QLayout
 
 IMAGES_PATH = ""
 
@@ -20,7 +20,7 @@ PARAMETERS = {}
 
 
 def load_options():
-    bjson = pkgutil.get_data("pyDLib", "ressources/default_options.json")
+    bjson = pkgutil.get_data("pyDLib", "ressources/default_GUI_options.json")
     if bjson is None:
         logging.error("Default options file not found !")
         dic_default = {}
@@ -28,7 +28,7 @@ def load_options():
         dic_default = json.loads(bjson.decode("utf-8"))
     try:
 
-        with open(os.path.join(CONFIGURATION_PATH,"options.json"), encoding='utf-8') as f:
+        with open(os.path.join(CONFIGURATION_PATH,"GUI_options.json"), encoding='utf-8') as f:
             dic = json.load(f)
     except FileNotFoundError:
         logging.warning("No options file found !")

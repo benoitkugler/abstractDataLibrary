@@ -71,3 +71,15 @@ def init_all(dev=False):
     load_credences(dev=dev)
     load_configuration()
     init_modules()
+
+
+## ------------------- Version notes ------------------- ##
+
+CHANGELOG_PATH = "configuration/changelog.html"
+def load_changelog():
+    try:
+        with open(CHANGELOG_PATH, encoding="utf-8") as f:
+            s = f.read()
+    except FileNotFoundError:
+        s = "Aucune note de version disponible."
+    return s

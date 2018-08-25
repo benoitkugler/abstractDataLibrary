@@ -34,12 +34,12 @@ class FatalError(abstractDialog):
         self.setDefaultButton(QMessageBox.No)
         self.exec_()
 
-class Warning(abstractDialog):
+class WarningBox(abstractDialog):
 
     ICON = QMessageBox.Warning
 
     def __init__(self, message):
-        super(Warning, self).__init__(text=message)
+        super(WarningBox, self).__init__(text=message)
         self.exec_()
 
 
