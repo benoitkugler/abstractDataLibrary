@@ -132,7 +132,7 @@ class abstractDictTable(dict):
         if pattern == "*":
             return groups.Collection(self.ACCES(base, i) for i in self)
 
-        if len(pattern) >= MIN_CHAR_SEARCH:  # Besoin d'au moins 2 caractères
+        if len(pattern) >= MIN_CHAR_SEARCH:  # Needed chars.
             regexp = re.compile(pattern, flags=re.I)
             to_string_hook = to_string_hook or self._record_to_string
             search = regexp.search

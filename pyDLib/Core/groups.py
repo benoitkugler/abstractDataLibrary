@@ -79,6 +79,14 @@ class Collection(sortableListe):
         return "\n".join(str(a) for a in self)
 
 
+    def index_from_id(self,Id):
+        """Return the row of given Id if it'exists, otherwise None"""
+        try:
+            return [a.Id for a in self].index(Id)
+        except IndexError:
+            return
+
+
     def get_info(self, key=None, Id=None) -> dict:
         """Returns information associated with Id or list index"""
         if key is not None:
@@ -96,7 +104,6 @@ class Collection(sortableListe):
         """
 
         new_liste = []
-        print(pattern)
         for p in self:
             d_font = {}
             found = False

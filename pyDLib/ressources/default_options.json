@@ -1,5 +1,5 @@
 {
-  "couleurs_niveaux": [
+  "level_colors": [
     "black",
     [
       220,
@@ -67,11 +67,7 @@
       15
     ]
   ],
-  "couleur_authentifie": [
-    "#AF6263",
-    "#00BB0F"
-  ],
-  "couleur_sexe": {
+  "sexe_color": {
     "M": [
       19,
       200,
@@ -84,4 +80,5 @@
       126,
       130
     ]
+  }
 }

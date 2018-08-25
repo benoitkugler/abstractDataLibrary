@@ -6,7 +6,7 @@ import pkgutil
 from typing import Union, List
 
 from PyQt5.QtGui import QColor, QIcon
-from PyQt5.QtWidgets import QToolButton
+from PyQt5.QtWidgets import QToolButton, QDialog
 
 IMAGES_PATH = ""
 
@@ -20,29 +20,38 @@ PARAMETERS = {}
 
 
 def load_options():
-    bjson = pkgutil.get_data(__package__, "default_options.json")
+    bjson = pkgutil.get_data("pyDLib", "ressources/default_options.json")
     if bjson is None:
         logging.error("Default options file not found !")
         dic_default = {}
     else:
-        dic_default = json.load(str(bjson, encoding="utf-8"))
+        dic_default = json.loads(bjson.decode("utf-8"))
     try:
 
         with open(os.path.join(CONFIGURATION_PATH,"options.json"), encoding='utf-8') as f:
             dic = json.load(f)
-    except (FileNotFoundError, json.JSONDecodeError):
-        logging.exception("Invalid options file !")
+    except FileNotFoundError:
+        logging.warning("No options file found !")
+        dic = {}
+    except json.JSONDecodeError:
+        logging.warning("Invalid options file !")
         dic = {}
     PARAMETERS["OPTIONS"] = dict(dic_default,**dic)
 
-    for name, path in STYLE_PATH.items():
-        try:
-            with open(path,encoding="utf-8") as f:
-                style = f.read()
-        except FileNotFoundError:
-            logging.exception(f"No style sheet found for {name} !")
+    for name, file in STYLE_FILES.items():
+        style = pkgutil.get_data("pyDLib", "ressources/default_" + file)
+        if style is None:
+            logging.error(f"Default style sheet {name} not found !")
             style = ""
-        PARAMETERS[name] = style
+        else:
+            style = style.decode("utf-8")
+        try:
+            with open(os.path.join(CONFIGURATION_PATH,file),encoding="utf-8") as f:
+                style_add = f.read()
+        except FileNotFoundError:
+            logging.warning(f"No style sheet found for {name} !")
+            style_add = ""
+        PARAMETERS[name] = style + "\n" + style_add
 
 
 
@@ -60,6 +69,10 @@ class abstractIcon(QIcon):
 
     def __init__(self) -> None:
         super().__init__(os.path.join(IMAGES_PATH, self.IMAGE))
+
+
+class AppIcon(abstractIcon):
+    IMAGE = "app-icon.png"
 
 
 class TimeIcon(abstractIcon):
@@ -105,3 +118,5 @@ class Arrow(QIcon):
 
     def __init__(self,is_up = True):
         super().__init__(os.path.join(IMAGES_PATH, self.PATH_UP if is_up else self.PATH_DOWN))
+
+

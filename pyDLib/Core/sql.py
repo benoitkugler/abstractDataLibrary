@@ -227,7 +227,7 @@ class abstractRequetesSQL():
         keys = [str(x) for x in dic]
         entete = ",".join(keys)
         placeholders = ",".join(cls.named_style.format(x) for x in keys)
-        entete = f"({entete})"
+        entete = f"({header})"
         placeholders = f"({placeholders})"
         return entete, placeholders
 

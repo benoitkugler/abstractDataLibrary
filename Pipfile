@@ -8,6 +8,7 @@ name = "pypi"
 setuptools = "*"
 wheel = "*"
 twine = "*"
+"pyqt5" = "*"
 
 [dev-packages]
 
