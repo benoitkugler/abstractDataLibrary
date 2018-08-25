@@ -11,7 +11,7 @@ from . import Color, Arrow, DeleteIcon, PARAMETERS, fenetres
 from ..Core import formats, groups, data_model, controller
 
 
-def _custom_font(is_bold=False,is_italic=False):
+def _custom_font(is_bold=False, is_italic=False):
     font = QFont()
     font.setBold(is_bold)
     font.setItalic(is_italic)
@@ -30,7 +30,7 @@ class Renderer():
                 return formats.ASSOCIATION[attribut][0]
             elif role == Qt.DecorationRole:
                 if section == sort_state[0]:
-                    return Arrow(is_up = sort_state[1])
+                    return Arrow(is_up=sort_state[1])
             elif role == Qt.TextAlignmentRole:
                 return Qt.AlignCenter
             elif role == Qt.FontRole:
@@ -80,16 +80,14 @@ class abstractModel(QAbstractTableModel):
     IS_EDITABLE = False
     RENDERER = Renderer
 
-
-    header : List
-    sort_state : Tuple
-    collection : groups.sortableListe
+    header: List
+    sort_state: Tuple
+    collection: groups.sortableListe
 
     def __init__(self, header):
         super().__init__()
         self.header = header
         self.sort_state = (-1, False)
-
 
     def rowCount(self, parent=None, *args, **kwargs):
         return len(self.collection)
@@ -97,28 +95,28 @@ class abstractModel(QAbstractTableModel):
     def columnCount(self, parent=None, *args, **kwargs):
         return len(self.header)
 
-    def _acces_data(self,acces,attr):
+    def _acces_data(self, acces, attr):
         return acces[attr] if attr is not None else acces
 
-    def data(self, index : QModelIndex, role=None):
-        acces , attr  = self.collection[index.row()] ,  self.header[index.column()]
-        value = self._acces_data(acces,attr)
+    def data(self, index: QModelIndex, role=None):
+        acces, attr = self.collection[index.row()], self.header[index.column()]
+        value = self._acces_data(acces, attr)
         info = self.collection.get_info(key=index.row())
 
         return self.RENDERER.data(attr, value, info, role)
 
-    def headerData(self, section : int, orientation : Qt.Orientation, role=None):
+    def headerData(self, section: int, orientation: Qt.Orientation, role=None):
         attribut = (orientation == Qt.Horizontal) and self.header[section] or None
         return self.RENDERER.headerData(section, orientation, role, attribut, self.sort_state)
 
-    def flags(self, index : QModelIndex):
+    def flags(self, index: QModelIndex):
         """All fields are selectable"""
         if self.IS_EDITABLE and self.header[index.column()] in self.EDITABLE_FIELDS:
             return Qt.ItemIsEnabled | Qt.ItemIsSelectable | Qt.ItemIsEditable
         else:
             return super().flags(index) | Qt.ItemIsSelectable
 
-    def sort(self, section : int, order=None):
+    def sort(self, section: int, order=None):
         """Order is defined by the current state of sorting"""
         attr = self.header[section]
         old_i, old_sort = self.sort_state
@@ -170,7 +168,7 @@ class InternalDataModel(abstractModel):
     If header is None, directly acces item data.
     """
 
-    def __init__(self, collection: groups.sortableListe, header : List):
+    def __init__(self, collection: groups.sortableListe, header: List):
         header = header if header is not None else [None]
         super().__init__(header)
         self.collection = collection
@@ -188,7 +186,6 @@ class InternalDataModel(abstractModel):
         row = index.row() if hasattr(index, "row") else index
         self.collection[row] = new_item
         self.dataChanged.emit(self.index(row, 0), self.index(row, self.rowCount() - 1))
-
 
 
 class ExternalDataModel(abstractModel):
@@ -212,7 +209,7 @@ class ExternalDataModel(abstractModel):
 
     def set_data(self, index, value):
         """Uses given data setter, and emit modelReset signal"""
-        acces ,field = self.get_item(index) , self.header[index.column()]
+        acces, field = self.get_item(index), self.header[index.column()]
         self.beginResetModel()
         self.set_data_hook(acces, field, value)
         self.endResetModel()
@@ -235,7 +232,7 @@ class MultiSelectModel(InternalDataModel):
             return default | Qt.ItemIsUserCheckable
         return default
 
-    def data(self, index : QModelIndex, role=None):
+    def data(self, index: QModelIndex, role=None):
         if role == Qt.CheckStateRole and index.column() == 0:
             c_id = self.get_item(index).Id
             b = (c_id in self.selected_ids) and Qt.Checked or Qt.Unchecked
@@ -255,7 +252,7 @@ class MultiSelectModel(InternalDataModel):
 
         self.dataChanged.emit(index, index)
 
-    def setData(self, index : QModelIndex, value, role=None):
+    def setData(self, index: QModelIndex, value, role=None):
         """Update selected_ids on click on index cell."""
         if not (index.isValid() and role == Qt.CheckStateRole):
             return False
@@ -271,8 +268,6 @@ class MultiSelectModel(InternalDataModel):
         self._set_id(Id, is_added, self.index(row, 0))
 
 
-
-
 ### -------------------- Views -------------------- ###
 
 
@@ -285,10 +280,10 @@ class abstractList(QTableView):
 
     MIN_HEIGHT = 60
     VERTICAL_HEADER_VISIBLE = False
-    
+
     SELECTION_BEHAVIOR = QAbstractItemView.SelectRows
     SELECTION_MODE = QAbstractItemView.SingleSelection
-        
+
     def __init__(self, model):
         super().__init__()
         self.setObjectName("list-view")
@@ -296,7 +291,7 @@ class abstractList(QTableView):
 
         self.horizontalHeader().sectionClicked.connect(self.on_sort)  # sort on header click
         self.horizontalHeader().setStretchLastSection(True)
-        
+
         self.verticalHeader().setVisible(self.VERTICAL_HEADER_VISIBLE)
         self.verticalHeader().sectionClicked.connect(self.on_click_header_vertical)
 
@@ -306,16 +301,16 @@ class abstractList(QTableView):
         self.setAlternatingRowColors(True)
         self.setSelectionBehavior(self.SELECTION_BEHAVIOR)
         self.setSelectionMode(self.SELECTION_MODE)
-        
+
         self.setSizeAdjustPolicy(QAbstractScrollArea.AdjustToContentsOnFirstShow)
         self.setMinimumHeight(self.MIN_HEIGHT)
 
         self.setEditTriggers(QTableView.DoubleClicked)
-        
+
     def model(self) -> abstractModel:
         return super(abstractList, self).model()
 
-    def paintEvent(self, paintevent : QPaintEvent):
+    def paintEvent(self, paintevent: QPaintEvent):
         """Displays placeholder in case of empty collection"""
         super().paintEvent(paintevent)
         if self.model().rowCount() == 0:
@@ -325,7 +320,7 @@ class abstractList(QTableView):
                              self.PLACEHOLDER)
 
     def on_sort(self, i):
-        self.sortByColumn(i,None)
+        self.sortByColumn(i, None)
         self.resizeColumnToContents(i)
 
     def on_click(self, index):
@@ -344,16 +339,24 @@ class abstractList(QTableView):
         if len(l) > 0:
             return self.model().get_item(l[0])
 
+
 class MultiSelectList(abstractList):
     """Add data_changed signal, and get_data, set_data methods"""
 
     data_changed = pyqtSignal(list)
     """Emitted on change of selected Ids"""
 
+    @classmethod
+    def from_list(cls, liste, header):
+        """Build a MultiSelectList with a liste of entry"""
+        collection = groups.sortableListe(PseudoAccesCategorie(n) for n in liste)
+        model = MultiSelectModel(collection, header)
+        return cls(model)
+
     def model(self) -> MultiSelectModel:
         return super(MultiSelectList, self).model()
 
-    def __init__(self, model : MultiSelectModel):
+    def __init__(self, model: MultiSelectModel):
         super().__init__(model)
         self.setProperty('with_checkbox', True)
         self.setWordWrap(True)
@@ -378,13 +381,14 @@ class SearchList(abstractList):
     """Emitted on selection. Returns Id,label"""
 
     def __init__(self, entete, placeholder=None):
-        model = InternalDataModel(sortableListe(),entete)
+        model = InternalDataModel(sortableListe(), entete)
         super().__init__(model)
         if placeholder is not None:
             self.PLACEHOLDER = placeholder
 
-        self.setMouseTracking(True)   # Lines highlight
+        self.setMouseTracking(True)  # Lines highlight
         self.setProperty("highlight", True)
+
 
     def on_click(self, index):
         acces = self.model().get_item(index)
@@ -397,8 +401,8 @@ class SimpleList(abstractList):
 
     SHOW_GRID = False
 
-    def __init__(self,liste,header,is_editable):
-        model = InternalDataModel(liste,header)
+    def __init__(self, liste, header, is_editable):
+        model = InternalDataModel(liste, header)
         super().__init__(model)
         self.setShowGrid(self.SHOW_GRID)
         self.horizontalHeader().setVisible(header is not None)
@@ -417,7 +421,7 @@ class abstractMainList(abstractList):
 
     ENTETE = []
 
-    interface : controller.abstractInterface
+    interface: controller.abstractInterface
 
     def __init__(self, interface):
         self.interface = interface
@@ -437,9 +441,6 @@ class abstractMainList(abstractList):
         raise NotImplementedError
 
 
-
-
-
 ## -------------  Id search widgets  ------------- ##
 
 class abstractAccesId(fenetres.Window):
@@ -455,7 +456,6 @@ class abstractAccesId(fenetres.Window):
 
     SEARCH_PLACEHOLDER = f"Please type at least {data_model.MIN_CHAR_SEARCH} characters..."
 
-
     def __init__(self, search_hook):
         super().__init__(self.WINDOW_TITLE)
         self.return_value = None
@@ -464,16 +464,16 @@ class abstractAccesId(fenetres.Window):
         self.entry = QLineEdit()
         self.entry.setPlaceholderText(self.SEARCH_PLACEHOLDER)
 
-        self.choices_view = SearchList(self.LIST_ENTETE,placeholder=self.LIST_PLACEHOLDER)
+        self.choices_view = SearchList(self.LIST_ENTETE, placeholder=self.LIST_PLACEHOLDER)
 
         self.entry.textChanged.connect(self.on_search)  # On search
 
-        self.choices_view.selected.connect(self.on_done) # On click on result
+        self.choices_view.selected.connect(self.on_done)  # On click on result
 
         self.addWidget(self.entry)
         self.addWidget(self.choices_view)
 
-    def on_search(self,pattern):
+    def on_search(self, pattern):
         collection = self.search_hook(pattern)
         self.choices_view.model().set_collection(collection)
 
@@ -487,10 +487,9 @@ class abstractBaseAccesId(abstractAccesId):
 
     SEARCH_FUNCTION_NAME = ""
 
-    def __init__(self,base):
-        search_hook = getattr(base,self.SEARCH_FUNCTION_NAME)
+    def __init__(self, base):
+        search_hook = getattr(base, self.SEARCH_FUNCTION_NAME)
         super(abstractBaseAccesId, self).__init__(search_hook)
-
 
 
 class BoutonAccesId(QPushButton):
@@ -505,10 +504,10 @@ class BoutonAccesId(QPushButton):
     AS_ACCES = False
     """If true, returns and emit an acces object instead of an Id"""
 
-    acces : data_model.abstractAcces
+    acces: data_model.abstractAcces
 
     @staticmethod
-    def format_acces_from_field(field,acces):
+    def format_acces_from_field(field, acces):
         """Display given field of acces.
         Field must be registered in formats.ASSOCIATION.
         """
@@ -528,11 +527,11 @@ class BoutonAccesId(QPushButton):
             self.set_label()
             self.data_changed.emit(self.get_data())
 
-    def _format_acces(self,acces):
+    def _format_acces(self, acces):
         """Might use format_acces_from_field"""
         raise NotImplementedError
 
-    def _acces_from_id(self,id):
+    def _acces_from_id(self, id):
         raise NotImplementedError
 
     def set_label(self):
@@ -544,7 +543,7 @@ class BoutonAccesId(QPushButton):
             return self.acces
         return self.acces.Id
 
-    def set_data(self,Id):
+    def set_data(self, Id):
         acces = self._acces_from_id(Id)
         self.acces = acces
         self.set_label()
@@ -581,9 +580,11 @@ class CadreView(QFrame):
         self.label.setText(t)
 
 
+class PseudoAccesCategorie(dict):
 
-
-
+    def __init__(self, f):
+        super().__init__(nom=f)
+        self.Id = f
 
 
 class abstractMutableList(QFrame):
@@ -598,11 +599,11 @@ class abstractMutableList(QFrame):
     def __init__(self, collection, is_editable, *button_args):
         super().__init__()
         collection = sortableListe() if collection is None else collection
-        self.view = SimpleList(collection,self.LIST_HEADER ,is_editable)
+        self.view = SimpleList(collection, self.LIST_HEADER, is_editable)
         self.view.model().modelReset.connect(lambda: self.data_changed.emit(self.get_data()))
         self.view.model().dataChanged.connect(lambda: self.data_changed.emit(self.get_data()))
 
-        add_button = self.BOUTON(is_editable,*button_args)
+        add_button = self.BOUTON(is_editable, *button_args)
         add_button.data_changed.connect(self.on_add)
 
         layout = QVBoxLayout(self)
@@ -619,281 +620,3 @@ class abstractMutableList(QFrame):
 
     def get_data(self):
         return self.view.model().collection
-
-
-
-
-# class abstractCollectionView(abstractList):
-#     """Crée un modèle interne à partir de l'entête"""
-#
-#     PLACEHOLDER = None
-#     VERTICAL_HEADER_VISIBLE = True
-#     MIN_HEIGHT = 200
-#     ENTETE = None
-#
-#
-#     def __init__(self, collection):
-#         model = modelInterne(collection, self.ENTETE)
-#         super().__init__(model)
-#         self.setWordWrap(True)
-#         self.setTextElideMode(Qt.ElideMiddle)
-#         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
-#
-#     def get_current_item(self):
-#         """Renvoi l'acces sélectionné ou None"""
-#         l = self.selectedIndexes()
-#         if len(l) > 0:
-#             return self.model().get_item(l[0])
-#
-
-
-
-
-
-
-
-class PseudoAccesCategorie(dict):
-
-    def __init__(self, f):
-        super().__init__(nom=f)
-        self.Id = f
-
-
-class CategoriesProduitList(MultiSelectList):
-    data_changed = pyqtSignal(list)
-
-    def __init__(self, categories, base):
-        self.familles = base.produits.familles
-        model = modelMultiSelect(sortableListe([PseudoAccesCategorie(f) for f in self.familles]))
-        model.ENTETE = ["nom"]
-        super().__init__(model)
-
-        self.set_data(categories)
-        model.dataChanged.connect(lambda: self.data_changed.emit(self.get_data()))
-
-    def get_data(self):
-        return list(self.model().selected_ids)
-
-    def set_data(self, categories):
-        categories = categories or []
-        self.model().beginResetModel()
-        self.model().selected_ids = set(categories)
-        self.model().endResetModel()
-        self.data_changed.emit(self.get_data())
-
-
-
-class CategoriesProduit(QFrame):
-    """Ajout d'un champ resumant les catégories sélectionnées"""
-
-    data_changed = pyqtSignal(list)
-
-    def __init__(self, categories, is_editable, base):
-        super().__init__()
-        categories = categories or []
-        self.liste = CategoriesProduitList(categories, base)
-        self.liste.data_changed.connect(self.on_change)
-        self.resume = QTextBrowser()
-        self.resume.setHtml(self._sumup_liste(categories))
-        self.resume.anchorClicked.connect(self.delete)
-        self.resume.setOpenLinks(False)
-        self.resume.setReadOnly(True)
-        self.resume.setMinimumSize(300, 150)
-
-        button = QPushButton("Ajouter")
-        button.clicked.connect(self.show_popup)
-        layout = QVBoxLayout(self)
-        layout.addWidget(self.resume)
-        layout.addWidget(button)
-        self.button = button
-
-    def delete(self, s: QUrl):
-        tag = s.toString()
-        self.liste.model().set_by_Id(tag, False)
-
-    def show_popup(self):
-        popup = QFrame(self)
-        popup.setWindowFlags(Qt.Popup)
-        layout = QHBoxLayout(popup)
-        layout.addWidget(self.liste)
-        popup.show()
-        g_pos = self.button.mapToGlobal(QPoint(0, 0))
-        place = qApp.desktop().availableGeometry()
-        popup.setMaximumHeight(place.height() - g_pos.y())
-        popup.setMaximumWidth(self.resume.width())
-        popup.move(g_pos)
-
-
-    def _sumup_liste(self, l):
-        li = "<br/>".join(f"""<a href='{s}' title="Supprimer"><b>(-)</b> </a>{s}""" for s in sorted(l))
-        return li
-
-    def on_change(self, l):
-        self.resume.setHtml(self._sumup_liste(l))
-        self.data_changed.emit(l)
-
-    def get_data(self):
-        return self.liste.get_data()
-
-    def set_data(self, l):
-        self.liste.set_data(l)
-
-
-
-
-
-class viewListeProduit(abstractCollectionView):
-    PLACEHOLDER = "Aucun produit associé"
-    ENTETE = ["fou", "c", 'libf', "cond", "gabarit"]
-
-
-class ChoixQuantite(Fenetre):
-
-    def __init__(self, default_quantite):
-        super(ChoixQuantite, self).__init__("Choix de la quantité...")
-        choix_q = Quantite(default_quantite, True)
-        b = QPushButton("Valider")
-        b.setEnabled(False)
-        choix_q.data_changed.connect(lambda q: b.setEnabled(bool(q.nombre > 0 and q.unite)))
-
-        def on_valid():
-            self.quantite = choix_q.get_data()
-            self.accept()
-
-        b.clicked.connect(on_valid)
-
-        self.add_widget(choix_q)
-        self.add_widget(b)
-
-
-class viewListeIngredients(abstractCollectionView):
-    PLACEHOLDER = "Aucun ingrédient."
-    ENTETE = ["nom", "quantite"]
-
-    def on_double_click(self, index):
-        ing = self.model().get_item(index)
-        f = ChoixQuantite(ing.quantite)
-        if f.exec_():
-            ing.quantite = f.quantite
-            self.model().set_item(index, ing)
-
-
-
-class viewListeRecettes(abstractCollectionView):
-    PLACEHOLDER = "Aucune recette."
-    ENTETE = ["nom"]
-
-
-class viewListeProduitsSecondaire(viewListeProduit):
-    VERTICAL_HEADER_VISIBLE = False
-    PLACEHOLDER = "Cliquez sur Recherche pour trouver des produits pertinents..."
-
-
-class CadreListeSecondaireProduits(CadreView):
-    acces: Optional[Core.acces.Ingredient]
-
-    def __init__(self, acces, titre=ASSOCIATION["liste_secondaire"][0]):
-        super().__init__(viewListeProduitsSecondaire(sortableListe()), titre)
-        self.acces = acces
-
-    def recherche(self, with_prix=False):
-        self.view.model().set_collection(sortableListe())
-        self.view.PLACEHOLDER = "Recherche en cours..."
-        self.view.repaint()
-        l = self.acces.liste_secondaire(with_prix)
-        self.view.PLACEHOLDER = "Aucun produit trouvé. \n Conseil : Ajouter des catégories à l'ingrédient"
-        self.view.model().set_collection(l)
-
-    def widget_haut_droit(self):
-        bar = QToolBar()
-        bar.addAction(SearchIcon(), "Recherche", self.recherche).setToolTip("Rechercher des produits possibles")
-        return bar
-
-
-
-
-class abstractAddableCollectionView(QFrame):
-    data_changed = pyqtSignal(list)
-
-    VIEW = None
-    BOUTON = None
-    ACCES = None
-
-    def __init__(self, collection, is_editable, base):
-        super().__init__()
-        collection = sortableListe() if collection is None else collection
-        self.view = self.VIEW(collection)
-        self.view.model().modelReset.connect(lambda: self.data_changed.emit(self.get_data()))
-        self.view.model().dataChanged.connect(lambda: self.data_changed.emit(self.get_data()))
-        self.base = base
-
-        add_button = self.BOUTON(base)
-        add_button.data_changed.connect(self.on_add)
-
-        layout = QVBoxLayout(self)
-        layout.addWidget(self.view)
-        layout.addWidget(add_button)
-
-    def on_add(self, Id):
-        acces = self.ACCES(self.base, Id)
-        self.view.model().beginResetModel()
-        self.view.model().collection.append(acces)
-        self.view.model().endResetModel()
-
-    def set_data(self, collection):
-        self.view.model().set_collection(collection)
-
-    def get_data(self):
-        return self.view.model().collection
-
-
-class ListePrincipaleProduits(abstractAddableCollectionView):
-    VIEW = viewListeProduit
-    BOUTON = BoutonAjoutIdProduit
-    ACCES = acces.Produit
-
-
-
-class ListeIngredients(abstractAddableCollectionView):
-    VIEW = viewListeIngredients
-    BOUTON = BoutonAjoutIdIngredient
-    ACCES = acces.Ingredient
-
-    def __init__(self, collection, base, widget_nb_personnes):
-        super().__init__(collection, True, base)
-        if widget_nb_personnes is not None:
-            widget_nb_personnes.data_changed.connect(self.on_nb_personnes_change)
-        self.widget_nb_personnes = widget_nb_personnes
-
-    def on_nb_personnes_change(self, nb):
-        self.view.model().beginResetModel()
-        self.view.model().collection.set_nb_personnes(nb)
-        self.view.model().endResetModel()
-
-    def on_add(self, Id):
-        """Demande la quantité"""
-        if self.widget_nb_personnes is not None:
-            nb_pers_default = self.widget_nb_personnes.get_data()
-        else:
-            nb_pers_default = None
-        default_quantite = Core.formats.Quantite(nb_personnes=nb_pers_default)
-        f = ChoixQuantite(default_quantite)
-        if f.exec_():
-            q = f.quantite
-
-            acces = self.ACCES(self.base, Id, quantite=q)
-            try:
-                self.view.model().beginResetModel()
-                self.view.model().collection.append(acces)
-                self.view.model().endResetModel()
-            except ValueError as e:
-                Avertissement(str(e))
-
-
-
-class ListeRecettes(abstractAddableCollectionView):
-    VIEW = viewListeRecettes
-    BOUTON = BoutonAjoutIdRecette
-    ACCES = acces.Recette
-
-
