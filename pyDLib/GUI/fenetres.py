@@ -3,77 +3,90 @@ from PyQt5.QtWidgets import QMessageBox, QPushButton, QDialog, QVBoxLayout
 
 from . import AppIcon, PARAMETERS
 
-# TODO : implements dialog box
-# class ChargementError(QMessageBox):
+
+class abstractDialog(QMessageBox):
+
+    ICON = QMessageBox.Warning
+    TITLE = None
+
+    def __init__(self,text="",details=""):
+        super(abstractDialog, self).__init__()
+        if self.TITLE:
+            self.setWindowTitle(self.TITLE)
+        self.setIcon(self.ICON)
+        self.setText(text)
+        if details:
+            self.setInformativeText(details)
+
+        self.return_value = None
+
+
+
 #
-#     def __init__(self):
-#         QMessageBox.__init__(self)
-#         self.setIcon(QMessageBox.Warning)
-#         self.setText("Erreur de chargement de la base de données")
-#
-#         self.setInformativeText("""
-#         Il est conseillé de vérifier la connexion internet et de relancer l'application.<br/>
-#         Sinon, vous pouvez continuer en mode <b>hors connexion</b>.
-#         </i>Vous ne pourrez qu'accéder aux données déjà présente sur votre ordinateur, et aucun changement ne sera enregistré sur la base en ligne.</i>""")
-#
-#         yesb = self.addButton("Continuer hors-connexion", QMessageBox.YesRole)
-#         nob = self.addButton("Quitter", QMessageBox.NoRole)
-#         autreb = self.addButton("Mettre à jour et quitter", QMessageBox.DestructiveRole)
-#         self.setDefaultButton(QMessageBox.No)
-#         self.exec_()
-#         if self.clickedButton() == yesb:
-#             self.return_value = True
-#         elif self.clickedButton() == nob:
-#             self.return_value = False
-#         elif self.clickedButton() == autreb:
-#             self.return_value = 2
-#
-#
-# class FatalError(QMessageBox):
-#
-#     def __init__(self, details):
-#         QMessageBox.__init__(self)
-#         self.setIcon(QMessageBox.Critical)
-#         self.setText("Erreur de chargement !")
-#
-#         self.setInformativeText(details)
-#         self.addButton(QPushButton("Quitter"), QMessageBox.NoRole)
-#
-#         self.setDefaultButton(QMessageBox.No)
-#         self.return_value = self.exec_()
-#
-#
-# class Avertissement(QMessageBox):
-#
-#     def __init__(self, message):
-#         QMessageBox.__init__(self)
-#         self.setIcon(QMessageBox.Warning)
-#         self.setText(message)
-#         self.exec_()
-#
-#
-# class Confirmation(QMessageBox):
-#
-#     def __init__(self, message, yes="Confirmer", no="Annuler", info="", autre_bouton=None, push_button=None):
-#         super().__init__()
-#         self.setWindowTitle("Confirmation")
-#         self.setIcon(QMessageBox.Question)
-#         self.setText(message)
-#         self.setInformativeText(info)
-#         yesb = self.addButton(yes, QMessageBox.YesRole)
-#         nob = self.addButton(no, QMessageBox.NoRole)
-#         if autre_bouton:
-#             autreb = self.addButton(autre_bouton, QMessageBox.DestructiveRole)
-#         if push_button:
-#             self.addButton(push_button, QMessageBox.ActionRole)
-#         self.setDefaultButton(QMessageBox.No)
-#         self.exec_()
-#         if self.clickedButton() == yesb:
-#             self.return_value = True
-#         elif self.clickedButton() == nob:
-#             self.return_value = False
-#         elif self.clickedButton() == autreb:
-#             self.return_value = 2
+
+class FatalError(abstractDialog):
+
+    ICON = QMessageBox.Critical
+
+    def __init__(self, text,details):
+        abstractDialog.__init__(self,text=text,details=details)
+        self.addButton(QPushButton("Quitter"), QMessageBox.NoRole)
+        self.setDefaultButton(QMessageBox.No)
+        self.exec_()
+
+class Warning(abstractDialog):
+
+    ICON = QMessageBox.Warning
+
+    def __init__(self, message):
+        super(Warning, self).__init__(text=message)
+        self.exec_()
+
+
+class MultiChoiceDialog(abstractDialog):
+
+    def __init__(self,message,yes_label,no_label,other_label=None,action_button=None,details=""):
+        super(MultiChoiceDialog, self).__init__(text=message,details=details)
+        yesb = self.addButton(yes_label, QMessageBox.YesRole)
+        nob = self.addButton(no_label, QMessageBox.NoRole)
+        autreb = None
+        if other_label:
+            autreb = self.addButton(other_label, QMessageBox.DestructiveRole)
+        if action_button:
+            self.addButton(action_button, QMessageBox.ActionRole)
+        self.setDefaultButton(QMessageBox.No)
+        self.exec_()
+        if self.clickedButton() == yesb:
+            self.return_value = True
+        elif self.clickedButton() == nob:
+            self.return_value = False
+        elif self.clickedButton() == autreb:
+            self.return_value = 2
+
+
+class ChargementError(MultiChoiceDialog):
+
+    ICON = QMessageBox.Warning
+
+    def __init__(self):
+        text = "Erreur de chargement de la base de données"
+        details = """
+        Il est conseillé de vérifier la connexion internet et de relancer l'application.<br/>
+        Sinon, vous pouvez continuer en mode <b>hors connexion</b>.
+        </i>Vous ne pourrez qu'accéder aux données déjà présente sur votre ordinateur, et aucun changement ne sera enregistré sur la base en ligne.</i>"""
+        super(ChargementError, self).__init__(text,"Continuer hors-connexion",
+                                              "Quitter",other_label="Mettre à jour et quitter",
+                                              details=details)
+
+
+
+class Confirmation(MultiChoiceDialog):
+
+    ICON = QMessageBox.Question
+    TITLE = "Confirmation"
+
+    def __init__(self, message, yes="Confirmer", no="Annuler",**kwargs):
+        super(Confirmation, self).__init__(message,yes,no,*kwargs)
 
 
 
