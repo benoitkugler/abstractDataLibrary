@@ -1,0 +1,100 @@
+QMainWindow {
+    background-image: url("images/app-background.png");
+    background-repeat: no-repeat;
+    background-position:top right;
+
+}
+
+
+QStackedWidget#main-tabs{
+	padding: 10px;
+}
+
+
+
+QToolBar {
+    background-color: rgba(150, 145, 175,20);
+    border: 1px transparent;
+    border-radius: 7px;
+    padding: 3px;
+}
+
+
+QToolBar::item {
+    spacing: 10px; /* spacing between menu bar items */
+    background: transparent;
+}
+
+
+QToolBar QToolButton {
+    padding:10px;
+}
+
+
+
+QToolBar::item:hover {
+    background: rgba(150, 145, 175,40)
+}
+
+
+QToolBar::item:pressed {
+    background: rgba(150, 145, 175,120);
+}
+
+
+
+QStatusBar {
+	background-color: rgba(150, 145, 175,100);
+	color: #913D4F;
+	font-style: italic;
+}
+
+
+
+QLabel#titre-ecran-connexion {
+    font-size: 36pt;
+    font-weight: bold;
+    color: #489FD0;
+}
+
+
+/*
+Bouton de profil d'un utilisateur, de l'écran de connexion
+*/
+QFrame#cadre-profil-utilisateur {
+    border: 2px transparent;
+    border-radius: 5px;
+    border-image: url('images/logo_bordure.png') 0 0 0 0 stretch stretch;
+    padding: 5px;
+}
+
+QFrame#cadre-profil-utilisateur:hover {
+    background: #50D2FF;
+    border: 2px transparent;
+    background-clip: content;
+}
+
+QFrame#cadre-profil-utilisateur[state=true] {
+    background: #8FD5E8;
+    background-clip: content;
+}
+
+QFrame#cadre-profil-utilisateur QLabel#image {
+    margin-top: 10px;
+    margin-left: 10px;
+    margin-right: 10px;
+}
+
+QFrame#cadre-profil-utilisateur QLabel#label {
+    margin-bottom: 10px;
+    font-style: italic;
+}
+
+
+/*
+Retour de l'analyse du mot de passe (écran de connexion)
+*/
+QFrame#formulaire-ecran-connexion QLabel#analyse-mdp{
+    font-size: 14pt;
+    color: #F44524;
+}

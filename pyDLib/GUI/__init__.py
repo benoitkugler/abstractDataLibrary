@@ -5,8 +5,9 @@ import os
 import pkgutil
 from typing import Union, List
 
+from PyQt5.QtCore import QTimer
 from PyQt5.QtGui import QColor, QIcon, QImage, QPixmap
-from PyQt5.QtWidgets import QToolButton, QLayout
+from PyQt5.QtWidgets import QToolButton, QLayout, QGraphicsOpacityEffect, QApplication
 
 IMAGES_PATH = ""
 
@@ -70,18 +71,21 @@ class AppIcon(QIcon):
 
     def __init__(self):
         super(AppIcon, self).__init__(os.path.join(IMAGES_PATH, self.IMAGE))
-    
+
+
+def _pixmap_from_ressource(name):
+    b = pkgutil.get_data("pyDLib", "ressources/images/" + name)
+    image = QImage()
+    image.loadFromData(b, format="png")
+    pixmap = QPixmap()
+    pixmap.fromImage(image)
+    return pixmap
     
 class abstractIcon(QIcon):
     IMAGE = None
 
     def __init__(self) -> None:
-        b = pkgutil.get_data("pyDLib", "ressources/images/" + self.IMAGE)
-        image = QImage()
-        image.loadFromData(b, format="png")
-        pixmap = QPixmap()
-        pixmap.fromImage(image)
-        super().__init__(pixmap)
+        super().__init__(_pixmap_from_ressource(self.IMAGE))
 
 
 class TimeIcon(abstractIcon):
@@ -120,6 +124,19 @@ class DefaultIcon(abstractIcon):
     IMAGE = "default.png"
 
 
+class Arrow(abstractIcon):
+    PATH_UP = "arrow_up.png"
+    PATH_DOWN = "arrow_down.png"
+
+    def __init__(self, is_up=True):
+        self.IMAGE = self.PATH_UP if is_up else self.PATH_DOWN
+        super().__init__()
+
+
+class BackIcon(abstractIcon):
+    IMAGE = "back.png"
+
+
 class ButtonIcon(QToolButton):
 
     def __init__(self,icon,tooltip: str = "") -> None:
@@ -128,16 +145,18 @@ class ButtonIcon(QToolButton):
         self.setIcon(icon)
 
 
-class Arrow(abstractIcon):
+class UserAvatar(QPixmap):
+    IMAGE = "user.png"
 
-    PATH_UP = "arrow_up.png"
-    PATH_DOWN = "arrow_down.png"
-
-    def __init__(self,is_up = True):
-        self.IMAGE = self.PATH_UP if is_up else self.PATH_DOWN
-        super().__init__()
+    def __init__(self):
+        super(UserAvatar, self).__init__(_pixmap_from_ressource(self.IMAGE))
 
 
+class SuperUserAvatar(UserAvatar):
+    IMAGE = "user-super.png"
+
+
+### ------------------- Misc ------------------- ###
 def clear_layout(layout: QLayout) -> None:
     """Clear the layout off all its components"""
     if layout is not None:
@@ -148,3 +167,43 @@ def clear_layout(layout: QLayout) -> None:
                 widget.deleteLater()
             else:
                 clear_layout(item.layout())
+
+
+class MakeLoader(QGraphicsOpacityEffect):
+    MIN = 40
+    MAX = 100
+    PAS = 4
+
+    def __init__(self, widget):
+        super().__init__()
+        self.i = self.MAX
+        self.sens = False
+        self.widget = widget
+        widget.setGraphicsEffect(self)
+
+        self.timer = QTimer(self)
+        self.timer.timeout.connect(self.update_opacity)
+
+    def set_opacity(self, i):
+        self.setOpacity(float(i) / 100)
+        self.update()
+        QApplication.processEvents()
+
+    def update_opacity(self):
+        self.set_opacity(self.i)
+        if self.i >= self.MAX:
+            self.i, self.sens = self.MAX - self.PAS, False
+        elif self.i <= self.MIN:
+            self.i, self.sens = self.MIN + self.PAS, True
+        elif self.sens:
+            self.i += self.PAS
+        else:
+            self.i -= self.PAS
+
+    def stop(self):
+        self.timer.stop()
+        self.set_opacity(100)
+        self.setEnabled(False)
+
+    def start(self):
+        self.timer.start(50)

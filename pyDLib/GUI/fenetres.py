@@ -64,7 +64,7 @@ class MultiChoiceDialog(abstractDialog):
             self.return_value = 2
 
 
-class ChargementError(MultiChoiceDialog):
+class LoadingError(MultiChoiceDialog):
 
     ICON = QMessageBox.Warning
 
@@ -74,9 +74,9 @@ class ChargementError(MultiChoiceDialog):
         Il est conseillé de vérifier la connexion internet et de relancer l'application.<br/>
         Sinon, vous pouvez continuer en mode <b>hors connexion</b>.
         </i>Vous ne pourrez qu'accéder aux données déjà présente sur votre ordinateur, et aucun changement ne sera enregistré sur la base en ligne.</i>"""
-        super(ChargementError, self).__init__(text,"Continuer hors-connexion",
-                                              "Quitter",other_label="Mettre à jour et quitter",
-                                              details=details)
+        super(LoadingError, self).__init__(text, "Continuer hors-connexion",
+                                           "Quitter", other_label="Mettre à jour et quitter",
+                                           details=details)
 
 
 
