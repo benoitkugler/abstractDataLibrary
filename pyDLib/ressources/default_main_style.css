@@ -51,50 +51,46 @@ QStatusBar {
 
 
 
-QLabel#titre-ecran-connexion {
+QLabel#loggin-main-title {
     font-size: 36pt;
     font-weight: bold;
     color: #489FD0;
 }
 
 
-/*
-Bouton de profil d'un utilisateur, de l'écran de connexion
-*/
-QFrame#cadre-profil-utilisateur {
+
+QFrame#user-profile {
     border: 2px transparent;
     border-radius: 5px;
     border-image: url('images/logo_bordure.png') 0 0 0 0 stretch stretch;
     padding: 5px;
 }
 
-QFrame#cadre-profil-utilisateur:hover {
+QFrame#user-profile:hover {
     background: #50D2FF;
     border: 2px transparent;
     background-clip: content;
 }
 
-QFrame#cadre-profil-utilisateur[state=true] {
+QFrame#user-profile[state=true] {
     background: #8FD5E8;
     background-clip: content;
 }
 
-QFrame#cadre-profil-utilisateur QLabel#image {
+QFrame#user-profile QLabel#image {
     margin-top: 10px;
     margin-left: 10px;
     margin-right: 10px;
 }
 
-QFrame#cadre-profil-utilisateur QLabel#label {
+QFrame#user-profile QLabel#label {
     margin-bottom: 10px;
     font-style: italic;
 }
 
 
-/*
-Retour de l'analyse du mot de passe (écran de connexion)
-*/
-QFrame#formulaire-ecran-connexion QLabel#analyse-mdp{
+
+QFrame#login-form QLabel#password-flash{
     font-size: 14pt;
     color: #F44524;
 }

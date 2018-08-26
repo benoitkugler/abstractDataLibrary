@@ -48,11 +48,9 @@ class UserLogo(QFrame):
         i = QLabel()
         i.setPixmap(image)
         i.setAlignment(Qt.AlignCenter)
-        i.setObjectName('user-image')
 
         text = label
         text.setAlignment(Qt.AlignCenter)
-        text.setObjectName('user-label')
 
         grid.addWidget(i, 0, 0)
         grid.addWidget(text, 1, 0)

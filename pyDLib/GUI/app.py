@@ -10,7 +10,7 @@ from PyQt5.QtWidgets import (QMainWindow, QToolBar, QStackedWidget, QTabWidget, 
                              QLabel, QCheckBox, QPushButton, QFormLayout, QLineEdit)
 
 from . import PARAMETERS, AppIcon
-from . import common, load_options, IMAGES_PATH, DefaultIcon
+from . import common, load_options, IMAGES_PATH, DefaultIcon, login
 from .fenetres import Window, WarningBox
 from ..Core import StructureError, ConnexionError, load_changelog, controller, load_credences, CREDENCES
 
@@ -63,11 +63,10 @@ class Application(QMainWindow):
         self.theory_main = theory_main
         self.no_load = False
 
-        self.initUI()
-        self.init_shortcuts()
+        self._initUI()
+        self._init_shortcuts()
 
-
-    def initUI(self):
+    def _initUI(self):
         self.toolbar = None
         w = QStackedWidget()
         w.setObjectName('block-principal')
@@ -78,10 +77,25 @@ class Application(QMainWindow):
         self.setWindowIcon(AppIcon)
         self.move(200, 200)
 
-    def init_shortcuts(self):
+    def _init_shortcuts(self):
         seq2 = QKeySequence(Qt.SHIFT + Qt.ALT + Qt.Key_V)
         hidden_shortcut2 = QShortcut(seq2, self)
         hidden_shortcut2.activated.connect(self.show_version)
+
+    def init_login(self, from_local=False):
+        """Display login screen. May ask for local data loading if from_local is True."""
+        if self.toolbar:
+            self.removeToolBar(self.toolbar)
+        widget_login = login.Loading(self.statusBar(), self.main_abstrait)
+        self.centralWidget().addWidget(widget_login)
+        widget_login.loaded.connect(self.init_tabs)
+        widget_login.canceled.connect(self._quit)
+        widget_login.updated.connect(self.on_update_at_launch)
+        if from_local:
+            widget_login.propose_load_local()
+        else:
+            self.statusBar().showMessage("Données chargées depuis le serveur.", 5000)
+
 
     def init_tabs(self):
         self.theory_main.load_modules()
