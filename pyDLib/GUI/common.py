@@ -170,7 +170,7 @@ class Statistiques(QFrame):
 
     def __init__(self, interface):
         QFrame.__init__(self)
-        self.setObjectName("box-stats")
+        self.setObjectName("stats-box")
         box = QVBoxLayout(self)
 
         self.interface = interface

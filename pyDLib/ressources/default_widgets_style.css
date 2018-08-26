@@ -1,0 +1,201 @@
+/*
+Widget style definition
+*/
+
+
+QLabel#list-view-title{
+	font-size: 12pt;
+}
+
+
+
+QPushButton {
+	border: 2px outset rgba(87, 103, 187,120);
+    border-radius: 6px;
+    background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
+                                      stop: 0 #f6f7fa, stop: 1 #384DC1);
+    padding: 4px;
+}
+
+QPushButton:pressed {
+	border: 2px inset #8f8f91;
+}
+
+QPushButton:checked {
+	border: 2px inset #8f8f91;
+}
+
+QPushButton:hover {
+	background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
+                                      stop: 0 #f6f7fa, stop: 1 #1BC0C7);
+}
+
+
+
+QScrollBar:horizontal {
+    border: 1px solid grey;
+    background: #68A2F1;
+    height: 15px;
+    margin: 0px 20px 0 20px;
+}
+
+QScrollBar::handle:horizontal,QScrollBar::add-line:horizontal , QScrollBar::sub-line:horizontal{
+    background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
+                                      stop: 0 #f6f7fa, stop: 1 #384DC1);
+    border-radius: 4px;
+}
+
+QScrollBar::handle:horizontal{
+    min-width: 20px;
+}
+
+QScrollBar::add-line:horizontal {
+    border: 1px solid grey;
+    width: 20px;
+    subcontrol-position: right;
+    subcontrol-origin: margin;
+}
+
+QScrollBar::sub-line:horizontal {
+    border: 1px solid grey;
+    width: 20px;
+    subcontrol-position: left;
+    subcontrol-origin: margin;
+}
+QScrollBar::left-arrow:horizontal, QScrollBar::right-arrow:horizontal {
+    border: 1px solid grey;
+    width: 6px;
+    height: 3px;
+    background: black;
+}
+
+QScrollBar::add-line:horizontal:pressed, QScrollBar::sub-line:horizontal:pressed {
+    border: 1px inset grey;
+}
+
+QScrollBar:vertical {
+    border: 1px solid grey;
+    background: #68A2F1;
+    width: 15px;
+    margin: 20px 0px 20px 0px;
+}
+QScrollBar::handle:vertical,QScrollBar::add-line:vertical , QScrollBar::sub-line:vertical{
+    background: qlineargradient(x1: 0, y1: 0, x2: 1, y2: 0,
+                                      stop: 0 #f6f7fa, stop: 1 #384DC1);
+    border-radius: 4px;
+}
+QScrollBar::handle:vertical{
+    min-height: 20px;
+}
+QScrollBar::add-line:vertical {
+    border: 1px solid grey;
+    height: 20px;
+    subcontrol-origin: margin;
+}
+
+QScrollBar::sub-line:vertical {
+    border: 1px solid grey;
+    height: 20px;
+    subcontrol-origin: margin;
+}
+QScrollBar::up-arrow:vertical, QScrollBar::down-arrow:vertical {
+    border: 1px solid grey;
+    width: 3px;
+    height: 6px;
+    background: black;
+}
+QScrollBar::add-line:vertical:pressed, QScrollBar::sub-line:vertical:pressed {
+    border: 1px inset grey;
+}
+
+
+
+
+
+#list-view{
+	alternate-background-color: #C99CEB;
+	background: rgba(100, 200, 200,100);
+	border-radius: 4px;
+	border-top: 1px solid grey;
+	border-left: 1px solid grey;
+}
+/*
+Ligne de titre
+*/
+#list-view QHeaderView{
+	background: transparent;
+}
+/*
+Element de la ligne de titre
+*/
+#list-view QHeaderView::section{
+	border-radius: 4px;
+	border: 1px solid grey;
+	background: #DBD2D7;
+	padding: 5px;
+}
+/*
+Passage de la souris sur un élement de la ligne de titre
+*/
+#list-view QHeaderView::section:hover{
+	background: rgba(205, 210, 217,200)
+}
+/*
+Click sur un élement de la ligne de titre
+*/
+#list-view QHeaderView::section:pressed{
+	border: 1px inset grey;
+}
+/*
+Click sur un élement de la colonne
+*/
+#list-view QHeaderView::section:vertical:pressed{
+	border: 3px inset grey;
+}
+
+#list-view::item:selected {
+	background-color: rgba(20,20,20,40);
+}
+/*
+Passage de la souris sur une case d'une ligne d'une recherche rapide
+*/
+QTableView#list-view[highlight="true"]::item:hover {
+	background: #A28DCD;
+}
+
+QTableView#liste-attribut::item{
+	border: 0px solid black;
+}
+
+
+/* Nécessaire sinon les boxes ne sont pas visibles */
+#list-view[with_checkbox="true"]{
+    background: none;
+}
+
+
+
+/*
+Cadre d'affichage des statistiques
+*/
+QFrame#stats-box {
+    border: 2px ridge grey;
+    border-radius: 5px;
+}
+
+/*
+Cadre de recherche
+*/
+QFrame#search-box {
+    border: 2px ridge grey;
+    border-radius: 5px;
+}
+
+QFrame#search-box QLabel#search-result {
+    font-style: italic;
+    color: #0C0D62;
+}
+
+QFrame#search-box QLineEdit {
+    border-radius: 4px;
+}
