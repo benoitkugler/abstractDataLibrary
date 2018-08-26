@@ -50,6 +50,57 @@ class abstractMainTabs(QTabWidget):
         return self.interfaces[self._index_interfaces[index]]
 
 
+class abstractToolBar(QToolBar):
+    """Main tool bar, constiting in two parts :
+        - one is common to all modules
+        - one if defined by the current interface"""
+
+    def __init__(self, main_appli):
+        super().__init__()
+        self.main_appli = main_appli
+        self.interface = None
+
+        self.ICONES = PARAMETERS["OPTIONS"]["icones"]
+        size = PARAMETERS["OPTIONS"]["toolbar_button_size"]
+        self.setIconSize(QSize(size, size))
+        self.setMovable(False)
+        self._update()
+
+    def get_icon(self, id_action):
+        try:
+            chemin = self.ICONES[id_action]
+            chemin = os.path.join(IMAGES_PATH, chemin)
+            return QIcon(chemin)
+        except KeyError:
+            return DefaultIcon()
+
+    def _set_boutons_communs(self):
+        """Should add actions"""
+        pass
+
+    def _set_boutons_interface(self, buttons):
+        """Display buttons given by the list of tuples (id,function,description,is_active)"""
+        for id_action, f, d, is_active in buttons:
+            icon = self.get_icon(id_action)
+            action = self.addAction(icon, d)
+            action.setEnabled(is_active)
+            action.triggered.connect(f)
+
+    def set_interface(self, interface):
+        """Add update toolbar callback to the interface"""
+        self.interface = interface
+        self.interface.callbacks.update_toolbar = self._update
+        self._update()
+
+    def _update(self):
+        """Update the display of button after querying data from interface"""
+        self.clear()
+        self._set_boutons_communs()
+        if self.interface:
+            self.addSeparator()
+            l_actions = self.interface.get_actions_toolbar()
+            self._set_boutons_interface(l_actions)
+
 
 class Application(QMainWindow):
     theory_main: controller.abstractInterInterfaces
@@ -57,6 +108,7 @@ class Application(QMainWindow):
     WINDOW_TITLE = "abstract Data App"
 
     TABS_CLASS = abstractMainTabs
+    TOOLBAR_CLASS = abstractToolBar
 
     def __init__(self, theory_main):
         super().__init__()
@@ -96,11 +148,10 @@ class Application(QMainWindow):
         else:
             self.statusBar().showMessage("Données chargées depuis le serveur.", 5000)
 
-
     def init_tabs(self):
         self.theory_main.load_modules()
 
-        tb = SideToolBar(self)
+        tb = self.TOOLBAR_CLASS(self)
         self.set_toolbar(tb)
 
         self.tabs = self.TABS_CLASS(self.theory_main, self.statusBar())
@@ -214,53 +265,3 @@ class UpdateConfiguration(Window):
         self.accept()
 
 
-class SideToolBar(QToolBar):
-    """Main tool bar, constiting in two parts :
-        - one is common to all modules
-        - one if defined by the current interface"""
-
-    def __init__(self, main_appli):
-        super().__init__()
-        self.main_appli = main_appli
-        self.interface = None
-
-        self.ICONES = PARAMETERS["OPTIONS"]["icones"]
-        size = PARAMETERS["OPTIONS"]["toolbar_button_size"]
-        self.setIconSize(QSize(size, size))
-        self.setMovable(False)
-        self._update()
-
-    def get_icon(self, id_action):
-        try:
-            chemin = self.ICONES[id_action]
-            chemin = os.path.join(IMAGES_PATH, chemin)
-            return QIcon(chemin)
-        except KeyError:
-            return DefaultIcon()
-
-    def _set_boutons_communs(self):
-        """Should add actions"""
-        pass
-
-    def _set_boutons_interface(self, buttons):
-        """Display buttons given by the list of tuples (id,function,description,is_active)"""
-        for id_action, f, d, is_active in buttons:
-            icon = self.get_icon(id_action)
-            action = self.addAction(icon, d)
-            action.setEnabled(is_active)
-            action.triggered.connect(f)
-
-    def set_interface(self, interface):
-        """Add update toolbar callback to the interface"""
-        self.interface = interface
-        self.interface.callbacks.update_toolbar = self._update
-        self._update()
-
-    def _update(self):
-        """Update the display of button after querying data from interface"""
-        self.clear()
-        self._set_boutons_communs()
-        if self.interface:
-            self.addSeparator()
-            l_actions = self.interface.get_actions_toolbar()
-            self._set_boutons_interface(l_actions)
