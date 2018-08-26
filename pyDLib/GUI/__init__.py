@@ -14,7 +14,7 @@ IMAGES_PATH = ""
 
 CONFIGURATION_PATH =  "configuration/"
 
-STYLE_FILES = {"MAIN_STYLE": "main_style.css","WIDGETS_STYLE": "widgets_style.css","TABS_STYLE": "tabs_style.css"}
+STYLE_FILES = {"MAIN_STYLE": "main_style.css", "WIDGETS_STYLE": "widgets_style.css"}
 
 
 PARAMETERS = {}

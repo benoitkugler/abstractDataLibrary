@@ -71,7 +71,7 @@ class Application(QMainWindow):
         w = QStackedWidget()
         w.setObjectName('block-principal')
         self.setCentralWidget(w)
-        style = PARAMETERS["MAIN_STYLE"] + PARAMETERS["WIDGETS_STYLE"] + PARAMETERS["TABS_STYLE"]
+        style = PARAMETERS["MAIN_STYLE"] + PARAMETERS["WIDGETS_STYLE"]
         self.centralWidget().setStyleSheet(style)
         self.setWindowTitle(self.WINDOW_TITLE)
         self.setWindowIcon(AppIcon)

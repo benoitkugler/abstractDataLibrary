@@ -98,7 +98,7 @@ class Window(QDialog):
         self.setWindowTitle(titre)
         self.setWindowIcon(AppIcon())
 
-        style = PARAMETERS["WIDGETS_STYLE"] + PARAMETERS["TABS_STYLE"]
+        style = PARAMETERS["WIDGETS_STYLE"]
         self.setStyleSheet(style)
 
 

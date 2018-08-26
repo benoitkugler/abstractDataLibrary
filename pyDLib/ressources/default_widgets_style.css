@@ -198,4 +198,5 @@ QFrame#search-box QLabel#search-result {
 
 QFrame#search-box QLineEdit {
     border-radius: 4px;
+    border: 2px inset grey;
 }
