@@ -1,5 +1,5 @@
 """Implements widgets to visualize and modify basic fields. (french language)
-ASSOCIATION should be updated with custom wigets.
+ASSOCIATION should be updated with custom widgets, since common.abstractDetails will use it.
 """
 import datetime
 import re
@@ -11,7 +11,6 @@ from PyQt5.QtWidgets import QFrame, QHBoxLayout, QPushButton, QLineEdit, QLabel,
 
 from . import list_views, clear_layout, ValidIcon
 from ..Core import formats
-
 
 
 class abstractNewButton(QFrame):
@@ -528,6 +527,13 @@ TYPES_WIDGETS = defaultdict(
 )
 
 ASSOCIATION = {}
-for k, v in formats.ASSOCIATION.items():
-    t = TYPES_WIDGETS[k]
-    ASSOCIATION[k] = (v[0], v[1], v[2], t, v[3])
+
+
+def add_widgets_type(type_widgets, abstract_ASSOCIATION):
+    TYPES_WIDGETS.update(type_widgets)
+    for k, v in abstract_ASSOCIATION.items():
+        t = TYPES_WIDGETS[k]
+        ASSOCIATION[k] = (v[0], v[1], v[2], t, v[3])
+
+
+add_widgets_type({}, formats.ASSOCIATION)

@@ -346,12 +346,12 @@ class MultiSelectList(abstractList):
     data_changed = pyqtSignal(list)
     """Emitted on change of selected Ids"""
 
-    @classmethod
-    def from_list(cls, liste, header):
-        """Build a MultiSelectList with a liste of entry"""
-        collection = groups.sortableListe(PseudoAccesCategorie(n) for n in liste)
-        model = MultiSelectModel(collection, header)
-        return cls(model)
+    @staticmethod
+    def model_from_list(l, header):
+        """Return a model with a collection from a list of entry"""
+        col = groups.sortableListe(PseudoAccesCategorie(n) for n in l)
+        return MultiSelectModel(col, header)
+
 
     def model(self) -> MultiSelectModel:
         return super(MultiSelectList, self).model()
@@ -492,14 +492,15 @@ class abstractBaseAccesId(abstractAccesId):
         super(abstractBaseAccesId, self).__init__(search_hook)
 
 
-class BoutonAccesId(QPushButton):
+class abstractBoutonAccesId(QPushButton):
     """Button given acces to search window"""
 
     data_changed = pyqtSignal(object)
 
     WINDOW = None
-    """Search window class, inherits abstractBaseAccesId.
-    Must implements """
+    """Search window class, inherits abstractBaseAccesId."""
+
+    PLACEHOLDER = "Add..."
 
     AS_ACCES = False
     """If true, returns and emit an acces object instead of an Id"""
@@ -513,8 +514,8 @@ class BoutonAccesId(QPushButton):
         """
         return formats.ASSOCIATION[field][1](acces[field])
 
-    def __init__(self, placeholder, is_editable, base):
-        super().__init__(placeholder)
+    def __init__(self, is_editable, base):
+        super().__init__(self.PLACEHOLDER)
         self.setEnabled(is_editable)
         self.base = base
         self.clicked.connect(self.on_click)
@@ -599,7 +600,7 @@ class abstractMutableList(QFrame):
     def __init__(self, collection, is_editable, *button_args):
         super().__init__()
         collection = sortableListe() if collection is None else collection
-        self.view = SimpleList(collection, self.LIST_HEADER, is_editable)
+        self.view = self._create_view(collection, is_editable)
         self.view.model().modelReset.connect(lambda: self.data_changed.emit(self.get_data()))
         self.view.model().dataChanged.connect(lambda: self.data_changed.emit(self.get_data()))
 
@@ -609,6 +610,9 @@ class abstractMutableList(QFrame):
         layout = QVBoxLayout(self)
         layout.addWidget(self.view)
         layout.addWidget(add_button)
+
+    def _create_view(self, collection, is_editable):
+        return SimpleList(collection, self.LIST_HEADER, is_editable)
 
     def on_add(self, item):
         self.view.model().beginResetModel()
