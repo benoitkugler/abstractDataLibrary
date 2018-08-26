@@ -4,15 +4,15 @@ Starting of the programm should be controlled by a launcher script
 import logging
 import os
 
-from PyQt5.QtCore import Qt, QSize
+from PyQt5.QtCore import Qt, QSize, pyqtSignal
 from PyQt5.QtGui import QIcon, QKeySequence
 from PyQt5.QtWidgets import (QMainWindow, QToolBar, QStackedWidget, QTabWidget, qApp, QShortcut,
-                             QLabel, QCheckBox, QPushButton, QFormLayout, QVBoxLayout, QLineEdit)
+                             QLabel, QCheckBox, QPushButton, QFormLayout, QLineEdit)
 
-from . import common, load_options, IMAGES_PATH
-from ..Core import StructureError, ConnexionError, load_changelog, controller, load_credences, CREDENCES
 from . import PARAMETERS, AppIcon
+from . import common, load_options, IMAGES_PATH, DefaultIcon
 from .fenetres import Window, WarningBox
+from ..Core import StructureError, ConnexionError, load_changelog, controller, load_credences, CREDENCES
 
 
 def init_version(v):
@@ -20,11 +20,43 @@ def init_version(v):
     APP_VERSION = v
 
 
+class abstractMainTabs(QTabWidget):
+    """Modules container"""
+
+    interface_changed = pyqtSignal(controller.abstractInterface)
+
+    Id_to_Classes = {}
+    """Dict. { module_name : (GUI_module_class , label) }"""
+
+    def __init__(self, theory_main, status_bar):
+        super().__init__()
+        self.interfaces = theory_main.interfaces
+        self.setObjectName("main-tabs")
+        self.tabBar().setObjectName("main-tabs-bar")
+
+        self.currentChanged.connect(lambda i: self.interface_changed.emit(self.get_interface(i)))
+
+        self._index_interfaces = []
+        logging.info("Loading of modules : " + ", ".join(self.interfaces.keys()))
+
+        for module_name in sorted(self.interfaces.keys()):
+            i = self.interfaces[module_name]
+            classe, label = self.Id_to_Classes[module_name]
+            self._index_interfaces.append(module_name)
+            onglet = classe(status_bar, i)
+            self.addTab(onglet, label)
+
+    def get_interface(self, index):
+        return self.interfaces[self._index_interfaces[index]]
+
+
 
 class Application(QMainWindow):
     theory_main: controller.abstractInterInterfaces
 
     WINDOW_TITLE = "abstract Data App"
+
+    TABS_CLASS = abstractMainTabs
 
     def __init__(self, theory_main):
         super().__init__()
@@ -57,10 +89,10 @@ class Application(QMainWindow):
         tb = SideToolBar(self)
         self.set_toolbar(tb)
 
-        self.tabs = MainTabs(self.theory_main, self.statusBar())
+        self.tabs = self.TABS_CLASS(self.theory_main, self.statusBar())
         self.tabs.interface_changed.connect(tb.set_interface)
 
-        tb.set_interface(self.theory_main.interfaces[self.tabs.index_interfaces[0]])
+        tb.set_interface(self.theory_main.interfaces[self.tabs._index_interfaces[0]])
 
         self.centralWidget().addWidget(self.tabs)
         self.centralWidget().setCurrentIndex(1)
@@ -187,73 +219,34 @@ class SideToolBar(QToolBar):
     def get_icon(self, id_action):
         try:
             chemin = self.ICONES[id_action]
-
+            chemin = os.path.join(IMAGES_PATH, chemin)
+            return QIcon(chemin)
         except KeyError:
-            chemin = 'default.png'
-        chemin =  os.path.join(IMAGES_PATH,chemin)
-        return QIcon(chemin
+            return DefaultIcon()
 
-    def set_boutons_communs(self):
-        self.addAction(self.get_icon("reload_css"), "Actualiser le CSS", self.main_appli.reload_css)
-        self.addAction(self.get_icon("export_base"), "Exporter", self.main_appli.export_base).setToolTip(
-            "Exporter les données et les préférences...")
-        self.addAction(self.get_icon("import_base"), "Importer", self.main_appli.import_base).setToolTip(
-            "Importer les données et les préférences...")
+    def _set_boutons_communs(self):
+        """Should add actions"""
+        pass
 
-    ## Affiche les boutons correpondant à la liste de tuple (id,fonction,descriptions,actif), avec l'icône définie par ICONES
-    # Attention au loader. Il est détruit si l'interface update_entry !
-    def set_boutons_interface(self, l_fonctions):
-        for i in l_fonctions:
-            id_action, f, d, is_active, *with_loader = i  # loader ignoré
+    def _set_boutons_interface(self, buttons):
+        """Display buttons given by the list of tuples (id,function,description,is_active)"""
+        for id_action, f, d, is_active in buttons:
             icon = self.get_icon(id_action)
             action = self.addAction(icon, d)
             action.setEnabled(is_active)
             action.triggered.connect(f)
 
     def set_interface(self, interface):
+        """Add update toolbar callback to the interface"""
         self.interface = interface
         self.interface.callbacks.update_toolbar = self._update
         self._update()
 
-    # Met à jour les bouttons suivant les actions données par l'interface
     def _update(self):
+        """Update the display of button after querying data from interface"""
         self.clear()
-        self.set_boutons_communs()
+        self._set_boutons_communs()
         if self.interface:
             self.addSeparator()
             l_actions = self.interface.get_actions_toolbar()
-            self.set_boutons_interface(l_actions)
-
-
-## Partie principale regroupant les modules disponibles pour l'utilisateur.
-# Implément les divers Onglets, en fonction du dictionnaire de modules donné en argument
-# Chaque module est constitué d'une interface abstraite et d'une classe la prenant en référence
-#
-class MainTabs(QTabWidget):
-    ##Pour communiquer avec la barre d'outils
-    interface_changed = pyqtSignal(Core.interfaces.abstractInterface)
-
-    ## Correspondance entre id des modules et  classes. L'interface doit avoir le même nom que l'id.
-    Id_to_Classes = {
-        "produits": (GUI.Onglets.produits.Produits, " Produits "),
-        "recettes": (GUI.Onglets.recettes.Recettes, " Recettes "),
-        "menus": (GUI.Onglets.menus.Menus, " Menus ")
-    }
-
-    def __init__(self, main_abstrait, status_bar):
-        super().__init__()
-        self.interfaces = main_abstrait.interfaces
-        self.setObjectName("cadre-principal-onglets")
-        self.tabBar().setObjectName("barre-onglets")
-
-        self.currentChanged.connect(lambda i: self.interface_changed.emit(self.interfaces[self.index_interfaces[i]]))
-
-        self.index_interfaces = []
-        print("Chargement des modules suivants : ", self.interfaces.keys())
-
-        for mod in sorted(self.interfaces.keys()):
-            i = self.interfaces[mod]
-            classe, label = MainTabs.Id_to_Classes[mod]
-            self.index_interfaces.append(mod)
-            onglet = classe(status_bar, i)
-            self.addTab(onglet, label)
+            self._set_boutons_interface(l_actions)

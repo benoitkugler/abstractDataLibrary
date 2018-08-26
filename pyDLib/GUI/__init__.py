@@ -5,7 +5,7 @@ import os
 import pkgutil
 from typing import Union, List
 
-from PyQt5.QtGui import QColor, QIcon
+from PyQt5.QtGui import QColor, QIcon, QImage, QPixmap
 from PyQt5.QtWidgets import QToolButton, QLayout
 
 IMAGES_PATH = ""
@@ -65,15 +65,23 @@ class Color(QColor):
             super().__init__(c)
 
 
+class AppIcon(QIcon):
+    IMAGE = "app-icon.png"
+
+    def __init__(self):
+        super(AppIcon, self).__init__(os.path.join(IMAGES_PATH, self.IMAGE))
+    
+    
 class abstractIcon(QIcon):
     IMAGE = None
 
     def __init__(self) -> None:
-        super().__init__(os.path.join(IMAGES_PATH, self.IMAGE))
-
-
-class AppIcon(abstractIcon):
-    IMAGE = "app-icon.png"
+        b = pkgutil.get_data("pyDLib", "ressources/images/" + self.IMAGE)
+        image = QImage()
+        image.loadFromData(b, format="png")
+        pixmap = QPixmap()
+        pixmap.fromImage(image)
+        super().__init__(pixmap)
 
 
 class TimeIcon(abstractIcon):
@@ -103,8 +111,13 @@ class AddIcon(abstractIcon):
 class DeleteIcon(abstractIcon):
     IMAGE = "delete.png"
 
+
 class ValidIcon(abstractIcon):
     IMAGE = "ok.png"
+
+
+class DefaultIcon(abstractIcon):
+    IMAGE = "default.png"
 
 
 class ButtonIcon(QToolButton):
@@ -115,14 +128,14 @@ class ButtonIcon(QToolButton):
         self.setIcon(icon)
 
 
-class Arrow(QIcon):
+class Arrow(abstractIcon):
 
     PATH_UP = "arrow_up.png"
     PATH_DOWN = "arrow_down.png"
 
     def __init__(self,is_up = True):
-        super().__init__(os.path.join(IMAGES_PATH, self.PATH_UP if is_up else self.PATH_DOWN))
-
+        self.IMAGE = self.PATH_UP if is_up else self.PATH_DOWN
+        super().__init__()
 
 
 def clear_layout(layout: QLayout) -> None:
