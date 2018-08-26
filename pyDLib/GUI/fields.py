@@ -9,7 +9,7 @@ from PyQt5.QtCore import pyqtSignal, Qt
 from PyQt5.QtWidgets import QFrame, QHBoxLayout, QPushButton, QLineEdit, QLabel, QComboBox, QSpinBox, QDoubleSpinBox, \
     QCheckBox, QCompleter, QGridLayout, QVBoxLayout, QPlainTextEdit
 
-from . import list_views, clear_layout, ValidIcon
+from . import list_views, clear_layout, Icons
 from ..Core import formats
 
 
@@ -55,7 +55,7 @@ class NouveauTelephone(abstractNewButton):
         self.entree.setAlignment(Qt.AlignCenter)
         self.entree.setPlaceholderText("Ajouter...")
         add = QPushButton()
-        add.setIcon(ValidIcon())
+        add.setIcon(Icons.Valid)
         add.clicked.connect(self.on_add)
         self.entree.editingFinished.connect(self.on_add)
         line_layout.addWidget(self.entree)

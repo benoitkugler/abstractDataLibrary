@@ -1,4 +1,4 @@
-"""Define shortcut for icons. IMAGES_PATH should be set to use them."""
+"""Define shortcut for icons. PARAMETERS["IMAGES_PATH"] should be set to use them."""
 import json
 import logging
 import os
@@ -6,11 +6,8 @@ import pkgutil
 from typing import Union, List
 
 from PyQt5.QtCore import QTimer
-from PyQt5.QtGui import QColor, QIcon, QImage, QPixmap
+from PyQt5.QtGui import QColor, QIcon, QPixmap
 from PyQt5.QtWidgets import QToolButton, QLayout, QGraphicsOpacityEffect, QApplication
-
-IMAGES_PATH = ""
-
 
 CONFIGURATION_PATH =  "configuration/"
 
@@ -27,6 +24,7 @@ def load_options():
         dic_default = {}
     else:
         dic_default = json.loads(bjson.decode("utf-8"))
+
     try:
 
         with open(os.path.join(CONFIGURATION_PATH,"GUI_options.json"), encoding='utf-8') as f:
@@ -55,6 +53,36 @@ def load_options():
         PARAMETERS[name] = style + "\n" + style_add
 
 
+def _pixmap_from_ressource(name):
+    b = pkgutil.get_data("pyDLib", os.path.join("ressources/images", name))
+    pixmap = QPixmap()
+    pixmap.loadFromData(b)
+    return pixmap
+
+
+class Icons:
+    Time = "historique.png"
+    Refresh = "refresh.png"
+    Save = "save.png"
+    Search = "search.png"
+    Favoris = "favoris.png"
+    Add = "add.png"
+    Delete = "delete.png"
+    Valid = "ok.png"
+    Default = "default.png"
+    Back = "back.png"
+    ArrowUp = "arrow_up.png"
+    ArrowDown = "arrow_down.png"
+
+    @classmethod
+    def load_icons(cls):
+        for name in ["Time", "Refresh", "Save", "Search", "Favoris", "Add",
+                     "Delete", "Valid", "Default", "Back", "ArrowUp", "ArrowDown"]:
+            val = _pixmap_from_ressource(getattr(cls, name))
+            setattr(cls, name, val)
+
+
+
 ### ------------------ Helpers ------------------ ###
 
 class Color(QColor):
@@ -70,71 +98,8 @@ class AppIcon(QIcon):
     IMAGE = "app-icon.png"
 
     def __init__(self):
-        super(AppIcon, self).__init__(os.path.join(IMAGES_PATH, self.IMAGE))
-
-
-def _pixmap_from_ressource(name):
-    b = pkgutil.get_data("pyDLib", "ressources/images/" + name)
-    image = QImage()
-    image.loadFromData(b, format="png")
-    pixmap = QPixmap()
-    pixmap.fromImage(image)
-    return pixmap
-    
-class abstractIcon(QIcon):
-    IMAGE = None
-
-    def __init__(self) -> None:
-        super().__init__(_pixmap_from_ressource(self.IMAGE))
-
-
-class TimeIcon(abstractIcon):
-    IMAGE = "historique.png"
-
-
-class RefreshIcon(abstractIcon):
-    IMAGE = "refresh.png"
-
-
-class SaveIcon(abstractIcon):
-    IMAGE = "save.png"
-
-
-class SearchIcon(abstractIcon):
-    IMAGE = "search.png"
-
-
-class FavorisIcon(abstractIcon):
-    IMAGE = "favoris.png"
-
-
-class AddIcon(abstractIcon):
-    IMAGE = "add.png"
-
-
-class DeleteIcon(abstractIcon):
-    IMAGE = "delete.png"
-
-
-class ValidIcon(abstractIcon):
-    IMAGE = "ok.png"
-
-
-class DefaultIcon(abstractIcon):
-    IMAGE = "default.png"
-
-
-class Arrow(abstractIcon):
-    PATH_UP = "arrow_up.png"
-    PATH_DOWN = "arrow_down.png"
-
-    def __init__(self, is_up=True):
-        self.IMAGE = self.PATH_UP if is_up else self.PATH_DOWN
-        super().__init__()
-
-
-class BackIcon(abstractIcon):
-    IMAGE = "back.png"
+        path = os.path.abspath(os.path.join(PARAMETERS["IMAGES_PATH"], self.IMAGE))
+        super(AppIcon, self).__init__(path)
 
 
 class ButtonIcon(QToolButton):
@@ -142,7 +107,7 @@ class ButtonIcon(QToolButton):
     def __init__(self,icon,tooltip: str = "") -> None:
         super().__init__()
         self.setToolTip(tooltip)
-        self.setIcon(icon)
+        self.setIcon(QIcon(icon))
 
 
 class UserAvatar(QPixmap):

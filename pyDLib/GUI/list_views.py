@@ -7,7 +7,7 @@ from PyQt5.QtWidgets import QAbstractItemView, QTableView, \
     QAbstractScrollArea, QFrame, QLabel, QGridLayout, QLineEdit, QPushButton, QHeaderView, QVBoxLayout, QSizePolicy
 
 from pyDLib.Core.groups import sortableListe
-from . import Color, Arrow, DeleteIcon, PARAMETERS, fenetres
+from . import Color, PARAMETERS, fenetres, Icons
 from ..Core import formats, groups, data_model, controller
 
 
@@ -30,14 +30,14 @@ class Renderer():
                 return formats.ASSOCIATION[attribut][0]
             elif role == Qt.DecorationRole:
                 if section == sort_state[0]:
-                    return Arrow(is_up=sort_state[1])
+                    return Icons.ArrowUp if sort_state[1] else Icons.ArrowDown
             elif role == Qt.TextAlignmentRole:
                 return Qt.AlignCenter
             elif role == Qt.FontRole:
                 return _custom_font(is_bold=True)
         elif orientation == Qt.Vertical:
             if role == Qt.DecorationRole:
-                return DeleteIcon()
+                return Icons.Delete
             elif role == Qt.ToolTipRole:
                 return Renderer.SUPPRESS_TOOLTIP
 
@@ -54,7 +54,7 @@ class Renderer():
             return _custom_font(is_bold=is_bold)
         elif role == Qt.ForegroundRole:
             niveau = info.get('level', 0)
-            couleurs = PARAMETERS["level_colors"]
+            couleurs = PARAMETERS["OPTIONS"]["level_colors"]
             niveau = min(niveau, len(couleurs) - 1)
             color = couleurs[niveau]
             return QBrush(Color(color))
@@ -320,7 +320,7 @@ class abstractList(QTableView):
                              self.PLACEHOLDER)
 
     def on_sort(self, i):
-        self.sortByColumn(i, None)
+        self.sortByColumn(i, 0)
         self.resizeColumnToContents(i)
 
     def on_click(self, index):
@@ -409,7 +409,7 @@ class SimpleList(abstractList):
         self.verticalHeader().setVisible(is_editable)
         self.setMinimumHeight(50)
         self.setSizeAdjustPolicy(QAbstractScrollArea.AdjustToContents)
-        self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
+        self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         self.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeToContents)
 
         self.setWordWrap(True)
@@ -427,8 +427,8 @@ class abstractMainList(abstractList):
         self.interface = interface
         model = self.cree_model()
         super().__init__(model)
-        self.interface.add_update_function(self._update)
-        self.interface.add_reset_function(self._reset)
+        self.interface.add_update_function(self.model()._update)
+        self.interface.add_reset_function(self.model()._reset)
 
     def cree_model(self):
         model = ExternalDataModel(self.get_collection, self.set_data, self.ENTETE)
@@ -470,8 +470,8 @@ class abstractAccesId(fenetres.Window):
 
         self.choices_view.selected.connect(self.on_done)  # On click on result
 
-        self.addWidget(self.entry)
-        self.addWidget(self.choices_view)
+        self.add_widget(self.entry)
+        self.add_widget(self.choices_view)
 
     def on_search(self, pattern):
         collection = self.search_hook(pattern)
@@ -524,7 +524,7 @@ class abstractBoutonAccesId(QPushButton):
     def on_click(self):
         fen = self.WINDOW(self.base)
         if fen.exec_():
-            self.acces = fen.retour
+            self.acces = fen.return_value
             self.set_label()
             self.data_changed.emit(self.get_data())
 

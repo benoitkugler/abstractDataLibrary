@@ -6,7 +6,7 @@ from PyQt5.QtWidgets import (QFrame, QSizePolicy,
                              QLabel, QPushButton, QLineEdit, QCheckBox,
                              QStackedWidget, QHBoxLayout, QVBoxLayout, QGridLayout)
 
-from . import MakeLoader, UserAvatar, SuperUserAvatar, BackIcon, fenetres
+from . import MakeLoader, UserAvatar, SuperUserAvatar, fenetres, Icons
 from ..Core import StructureError, ConnexionError
 
 
@@ -96,7 +96,7 @@ class UserForm(QFrame):
         self.button_valid.clicked.connect(self.on_valid)
 
         retour = QPushButton()
-        retour.setIcon(BackIcon())
+        retour.setIcon(Icons.Back)
         retour.setToolTip("Retour à la liste des utilisateurs")
         retour.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Expanding)
         retour.clicked.connect(self.canceled.emit)

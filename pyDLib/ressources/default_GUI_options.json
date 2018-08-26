@@ -81,5 +81,6 @@
       130
     ]
   },
-  "toolbar_button_size":50
+  "toolbar_button_size": 50,
+  "icones": {}
 }

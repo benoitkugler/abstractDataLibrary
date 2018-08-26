@@ -9,8 +9,8 @@ from PyQt5.QtGui import QIcon, QKeySequence
 from PyQt5.QtWidgets import (QMainWindow, QToolBar, QStackedWidget, QTabWidget, qApp, QShortcut,
                              QLabel, QCheckBox, QPushButton, QFormLayout, QLineEdit)
 
-from . import PARAMETERS, AppIcon
-from . import common, load_options, IMAGES_PATH, DefaultIcon, login
+from . import PARAMETERS, AppIcon, Icons
+from . import common, load_options, login
 from .fenetres import Window, WarningBox
 from ..Core import StructureError, ConnexionError, load_changelog, controller, load_credences, CREDENCES
 
@@ -69,10 +69,10 @@ class abstractToolBar(QToolBar):
     def get_icon(self, id_action):
         try:
             chemin = self.ICONES[id_action]
-            chemin = os.path.join(IMAGES_PATH, chemin)
+            chemin = os.path.join(PARAMETERS["IMAGES_PATH"], chemin)
             return QIcon(chemin)
         except KeyError:
-            return DefaultIcon()
+            return Icons.Default
 
     def _set_boutons_communs(self):
         """Should add actions"""
@@ -82,7 +82,7 @@ class abstractToolBar(QToolBar):
         """Display buttons given by the list of tuples (id,function,description,is_active)"""
         for id_action, f, d, is_active in buttons:
             icon = self.get_icon(id_action)
-            action = self.addAction(icon, d)
+            action = self.addAction(QIcon(icon), d)
             action.setEnabled(is_active)
             action.triggered.connect(f)
 
@@ -124,9 +124,9 @@ class Application(QMainWindow):
         w.setObjectName('block-principal')
         self.setCentralWidget(w)
         style = PARAMETERS["MAIN_STYLE"] + PARAMETERS["WIDGETS_STYLE"]
-        self.centralWidget().setStyleSheet(style)
+        self.setStyleSheet(style)
         self.setWindowTitle(self.WINDOW_TITLE)
-        self.setWindowIcon(AppIcon)
+        self.setWindowIcon(AppIcon())
         self.move(200, 200)
 
     def _init_shortcuts(self):

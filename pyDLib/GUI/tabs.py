@@ -46,4 +46,6 @@ class abstractModule(QFrame):
                 setattr(self.interface.callbacks, action, f)
         manquantes = [a for a in self.interface.CALLBACKS if not a in dic_functions]
         if not manquantes:
-            logging.debug(self.__class__.__name__, " : Tous les callbacks demandés sont fournis.")
+            logging.debug(f"{self.__class__.__name__} : Tous les callbacks demandés sont fournis.")
+        else:
+            logging.warning(f"{self.__class__.__name__} didn't set asked callbacks {manquantes}")
