@@ -148,7 +148,7 @@ class Application(QMainWindow):
         else:
             self.statusBar().showMessage("Données chargées depuis le serveur.", 5000)
 
-    def init_tabs(self):
+    def init_tabs(self,maximized=True):
         self.theory_main.load_modules()
 
         tb = self.TOOLBAR_CLASS(self)
@@ -161,7 +161,8 @@ class Application(QMainWindow):
 
         self.centralWidget().addWidget(self.tabs)
         self.centralWidget().setCurrentIndex(1)
-        self.showMaximized()
+        if maximized:
+            self.showMaximized()
 
     def set_toolbar(self, tb):
         if self.toolbar:

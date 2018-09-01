@@ -4,10 +4,11 @@ from typing import List, Tuple
 from PyQt5.QtCore import Qt, pyqtSignal, QAbstractTableModel, QModelIndex
 from PyQt5.QtGui import QFont, QBrush, QPaintEvent, QPainter
 from PyQt5.QtWidgets import QAbstractItemView, QTableView, \
-    QAbstractScrollArea, QFrame, QLabel, QGridLayout, QLineEdit, QPushButton, QHeaderView, QVBoxLayout, QSizePolicy
+    QAbstractScrollArea, QFrame, QLabel, QGridLayout, QLineEdit, QPushButton, QHeaderView, QVBoxLayout, QSizePolicy, \
+    QHBoxLayout
 
 from pyDLib.Core.groups import sortableListe
-from . import Color, PARAMETERS, fenetres, Icons
+from . import Color, PARAMETERS, fenetres, Icons, ButtonIcon
 from ..Core import formats, groups, data_model, controller
 
 
@@ -249,7 +250,6 @@ class MultiSelectModel(InternalDataModel):
             self.selected_ids.add(Id)
         else:
             self.selected_ids.remove(Id)
-
         self.dataChanged.emit(index, index)
 
     def setData(self, index: QModelIndex, value, role=None):
@@ -358,6 +358,7 @@ class MultiSelectList(abstractList):
 
     def __init__(self, model: MultiSelectModel):
         super().__init__(model)
+        model.dataChanged.connect(lambda : self.data_changed.emit(self.get_data()))
         self.setProperty('with_checkbox', True)
         self.setWordWrap(True)
 
@@ -407,7 +408,6 @@ class SimpleList(abstractList):
         self.setShowGrid(self.SHOW_GRID)
         self.horizontalHeader().setVisible(header is not None)
         self.verticalHeader().setVisible(is_editable)
-        self.setMinimumHeight(50)
         self.setSizeAdjustPolicy(QAbstractScrollArea.AdjustToContents)
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         self.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeToContents)
@@ -552,6 +552,20 @@ class abstractBoutonAccesId(QPushButton):
 
 ### ------------------ Misc ------------------ ###
 
+class SearchField(QLineEdit):
+    """Lineedit + reset button.
+    Uses search_hook to actually performs the search. Calls it with None to reset.
+    """
+    def __init__(self,search_hook,placeholder = "Search...",tooltip= "Reset"):
+        super(SearchField, self).__init__()
+        self.setPlaceholderText(placeholder)
+        self.setClearButtonEnabled(True)
+        self.textChanged.connect(lambda s : search_hook(s or None))
+
+
+
+
+
 class CadreView(QFrame):
     """Add controls on view"""
 
@@ -576,6 +590,10 @@ class CadreView(QFrame):
     def widget_haut_droit(self):
         """Should return control widgets"""
         return
+
+    @staticmethod
+    def get_search_field(search_hook,**kwargs):
+        return SearchField(search_hook,**kwargs)
 
     def set_title(self, t):
         self.label.setText(t)
@@ -606,13 +624,16 @@ class abstractMutableList(QFrame):
 
         add_button = self.BOUTON(is_editable, *button_args)
         add_button.data_changed.connect(self.on_add)
+        self.add_button = add_button
 
         layout = QVBoxLayout(self)
         layout.addWidget(self.view)
         layout.addWidget(add_button)
 
     def _create_view(self, collection, is_editable):
-        return SimpleList(collection, self.LIST_HEADER, is_editable)
+        v = SimpleList(collection, self.LIST_HEADER, is_editable)
+        v.PLACEHOLDER = self.LIST_PLACEHOLDER
+        return v
 
     def on_add(self, item):
         self.view.model().beginResetModel()

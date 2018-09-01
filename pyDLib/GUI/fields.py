@@ -500,6 +500,7 @@ TYPES_WIDGETS = defaultdict(
     sexe=Sexe,
     tels=Tels,
     adresse=Adresse,
+    date=Date,
     date_debut=Date,
     date_fin=Date,
     date_arrivee=Date,

@@ -56,6 +56,7 @@ class abstractAcces:
         After succes, the base should be updated.
         """
         r = sql.abstractRequetesSQL.update(self.TABLE, self.modifications, self.Id)
+        self.modifications.clear()
         return sql.Executant([r])
 
     def __str__(self):

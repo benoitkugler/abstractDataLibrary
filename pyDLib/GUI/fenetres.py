@@ -1,5 +1,7 @@
 """Implements severals windows """
+from PyQt5.QtGui import QWindow
 from PyQt5.QtWidgets import QMessageBox, QPushButton, QDialog, QVBoxLayout
+from PyQt5.QtCore import Qt
 
 from . import AppIcon, PARAMETERS
 
@@ -97,6 +99,7 @@ class Window(QDialog):
         QDialog.__init__(self, parent, **kwargs)
         self.setWindowTitle(titre)
         self.setWindowIcon(AppIcon())
+        self.setWindowFlags(Qt.CustomizeWindowHint | Qt.WindowCloseButtonHint)
 
         style = PARAMETERS["WIDGETS_STYLE"]
         self.setStyleSheet(style)

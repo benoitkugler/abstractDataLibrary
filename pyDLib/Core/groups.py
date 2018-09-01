@@ -29,6 +29,13 @@ class sortableListe(list):
     def get_info(self, key=None, Id=None):
         return {}
 
+    def index_from_id(self,Id):
+        """Return the row of given Id if it'exists, otherwise None. Only works with pseudo-acces"""
+        try:
+            return [a.Id for a in self].index(Id)
+        except IndexError:
+            return
+
 
 
 class Collection(sortableListe):
@@ -79,12 +86,6 @@ class Collection(sortableListe):
         return "\n".join(str(a) for a in self)
 
 
-    def index_from_id(self,Id):
-        """Return the row of given Id if it'exists, otherwise None"""
-        try:
-            return [a.Id for a in self].index(Id)
-        except IndexError:
-            return
 
 
     def get_info(self, key=None, Id=None) -> dict:

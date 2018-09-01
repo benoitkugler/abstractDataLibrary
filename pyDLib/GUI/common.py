@@ -326,16 +326,28 @@ class abstractDetails(QFrame):
 
     def on_widget_data_changed(self, key, value):
         self.acces.modifie(key, value)
+        self.boutton_reset.setEnabled(True)
 
     def cree_boutton_valider(self):
         b = QPushButton("Valider")
         b.clicked.connect(self.done.emit)
         self.boutton_valider = b
 
+    def cree_boutton_reset(self):
+        b = QPushButton("Effacer les changements")
+        b.setEnabled(bool(self.acces.modifications))
+        def on_clear():
+            self.acces.modifications.clear()
+            self._update()
+            b.setEnabled(False)
+        b.clicked.connect(on_clear)
+        self.boutton_reset = b
+
     def init_bouttons(self):
         if self.is_editable:
             self.cree_boutton_valider()
-            self._set_bouttons([self.boutton_valider])
+            self.cree_boutton_reset()
+            self._set_bouttons([self.boutton_valider,self.boutton_reset])
 
     def _set_bouttons(self, bouttons):
         for b in bouttons:
