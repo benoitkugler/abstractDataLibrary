@@ -245,7 +245,7 @@ class abstractRequetesSQL():
             else:
                 try:
                     d[k] = json.dumps(v, ensure_ascii=False, cls=formats.JsonEncoder)
-                except Exception as e:
+                except ValueError as e:
                     logging.exception("Erreur d'encodage JSON !")
                     raise e
         return d
