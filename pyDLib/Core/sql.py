@@ -167,9 +167,7 @@ class LocalConnexion(abstractConnexion):
 class RemoteConnexion(abstractConnexion):
     """Connexion to local PostgreSQL DB"""
 
-    SQL = None
-    if has_psycopg2:
-        SQL = psycopg2
+    SQL = psycopg2 if has_psycopg2 else None
 
     HOST = ""
     USER = ""
@@ -227,7 +225,7 @@ class abstractRequetesSQL():
         keys = [str(x) for x in dic]
         entete = ",".join(keys)
         placeholders = ",".join(cls.named_style.format(x) for x in keys)
-        entete = f"({header})"
+        entete = f"({entete})"
         placeholders = f"({placeholders})"
         return entete, placeholders
 
