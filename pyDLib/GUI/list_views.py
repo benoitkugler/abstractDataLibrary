@@ -279,6 +279,7 @@ class abstractList(QTableView):
     """To display for an empty collection"""
 
     MIN_HEIGHT = 60
+    MIN_WIDTH = 40
     VERTICAL_HEADER_VISIBLE = False
 
     SELECTION_BEHAVIOR = QAbstractItemView.SelectRows
@@ -303,7 +304,7 @@ class abstractList(QTableView):
         self.setSelectionMode(self.SELECTION_MODE)
 
         self.setSizeAdjustPolicy(QAbstractScrollArea.AdjustToContentsOnFirstShow)
-        self.setMinimumHeight(self.MIN_HEIGHT)
+        self.setMinimumSize(self.MIN_WIDTH,self.MIN_HEIGHT)
 
         self.setEditTriggers(QTableView.DoubleClicked)
 
@@ -339,6 +340,9 @@ class abstractList(QTableView):
         if len(l) > 0:
             return self.model().get_item(l[0])
 
+    def search(self,pattern):
+        """Intented for main list, which should use interface search"""
+        raise NotImplementedError
 
 class MultiSelectList(abstractList):
     """Add data_changed signal, and get_data, set_data methods"""
@@ -439,6 +443,8 @@ class abstractMainList(abstractList):
 
     def set_data(self, acces, attribut, value):
         raise NotImplementedError
+
+
 
 
 ## -------------  Id search widgets  ------------- ##
@@ -591,9 +597,8 @@ class CadreView(QFrame):
         """Should return control widgets"""
         return
 
-    @staticmethod
-    def get_search_field(search_hook,**kwargs):
-        return SearchField(search_hook,**kwargs)
+    def get_search_field(self,**kwargs):
+        return SearchField(self.view.search,**kwargs)
 
     def set_title(self, t):
         self.label.setText(t)
