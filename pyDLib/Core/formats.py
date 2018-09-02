@@ -295,11 +295,13 @@ def _type_string(label):
     return label, abstractSearch.in_string, abstractRender.default, ""
 
 
-
-
 def _type_date(label):
     """Shortcut for date like fields"""
-    return label, abstractSearch.in_date, abstractRender.date, ""
+    return label, abstractSearch.in_date, abstractRender.date, DATE_DEFAULT
+
+def _type_datetime(label):
+    """Shortcut for datetime like fields"""
+    return label, abstractSearch.in_dateheure, abstractRender.dateheure, DATETIME_DEFAULT
 
 
 """
