@@ -303,6 +303,10 @@ def _type_datetime(label):
     """Shortcut for datetime like fields"""
     return label, abstractSearch.in_dateheure, abstractRender.dateheure, DATETIME_DEFAULT
 
+def _type_bool(label,default=False):
+    """Shortcut fot boolean like fields"""
+    return label, abstractSearch.nothing, abstractRender.boolen, default
+
 
 """
 Formats definitions.
