@@ -101,7 +101,7 @@ class abstractDictTable(dict):
     """Default value for field use in conversion from list to dict"""
 
     ACCES = abstractAcces
-    """Class of correspind acces. Used for research functions"""
+    """Class of corresping acces. Used for research functions"""
 
     @classmethod
     def _from_dict_dict(cls, dic):
@@ -121,7 +121,6 @@ class abstractDictTable(dict):
             return cls._from_dict_dict(data)
 
 
-
     def __init__(self, data):
         super().__init__(data or {})
 
@@ -135,29 +134,42 @@ class abstractDictTable(dict):
 
     def base_recherche_rapide(self, base, pattern, to_string_hook=None):
         """
-        abstractSearch pattern in string build from entries.
+        Search pattern in string build from entries.
 
         :param pattern: String to search for
-        :param to_string_hook: Hook  dict -> str to map record to string. Default to _record_to_string
+        :param to_string_hook: Callable dict -> str to map record to string. Default to _record_to_string
         :return:
         """
+        Ac = self.ACCES
         if pattern == "*":
-            return groups.Collection(self.ACCES(base, i) for i in self)
+            return groups.Collection(Ac(base, i) for i in self)
 
         if len(pattern) >= MIN_CHAR_SEARCH:  # Needed chars.
             regexp = re.compile(pattern, flags=re.I)
             to_string_hook = to_string_hook or self._record_to_string
             search = regexp.search
-            return groups.Collection(self.ACCES(base,i) for i,p in self.items() if search(to_string_hook(p)))
+            return groups.Collection(Ac(base, i) for i, p in self.items() if search(to_string_hook(p)))
 
         return groups.Collection()
 
     def select_by_field(self, base, field, value):
         """Return collection of acces whose field equal value"""
-        return groups.Collection(self.ACCES(base,i) for i, row in self.items() if row[field] == value)
+        Ac = self.ACCES
+        return groups.Collection(Ac(base, i) for i, row in self.items() if row[field] == value)
+
+    def select_by_critere(self, base, criteria):
+        """
+        :param base: Reference on whole base
+        :param criteria: Callable abstractAcces -> Bool, acting as filter
+        :return: Collection on acces passing the criteria
+        """
+        Ac = self.ACCES
+        return groups.Collection(Ac(base, i) for i in self if criteria(Ac(base, i)))
+
 
     def to_collection(self,base):
-        return groups.Collection(self.ACCES(base,i) for i in self)
+        Ac = self.ACCES
+        return groups.Collection(Ac(base, i) for i in self)
 
 class abstractListTable(list):
     """Represents one table : list [dict_attributes]"""
@@ -180,12 +192,14 @@ class abstractBase:
 
     TABLES = {}
 
-    CHEMIN_SAUVEGARDE = None
+    LOCAL_DB_PATH = None
+    """Local file path"""
+
 
     @classmethod
     def load_from_db(cls, callback_etat=print):
         """Launch data fetching then load data received.
-        The method load_remote_db should be overridden.
+        The method _load_remote_db should be overridden.
         """
         dic = cls._load_remote_db(callback_etat)
         callback_etat("Chargement...", 2, 3)
@@ -193,12 +207,11 @@ class abstractBase:
 
     @classmethod
     def _load_remote_db(cls, callback_etat):
-        """Return a dictionnary of tables"""
-        # TODO: think of server transfer
-        # callback_etat("Requête...", 0, 3)
-        # s = server_transfer.load_db(callback_etat)
-        # callback_etat("Lecture...", 1, 3)
-        # return self._parse_text_DB(s)
+        """ Should use remote DB or server.
+
+        :param callback_etat: callable (`msg` : str , `current_step` : int, `max_step` :int) -> None
+        :return: Dictionnary of tables
+        """
         return {}
 
     @classmethod
@@ -224,7 +237,7 @@ class abstractBase:
     def load_from_local(cls):
         """Load datas from local file."""
         try:
-            with open(cls.CHEMIN_SAUVEGARDE, 'rb') as f:
+            with open(cls.LOCAL_DB_PATH, 'rb') as f:
                 b = f.read()
                 s = protege_data(b, False)
         except (FileNotFoundError, KeyError):
@@ -280,7 +293,7 @@ class abstractBase:
         s = protege_data(s, True)
         callback_etat("Enregistrement...", 2, 3)
         try:
-            with open(self.CHEMIN_SAUVEGARDE, 'wb') as f:
+            with open(self.LOCAL_DB_PATH, 'wb') as f:
                 f.write(s)
         except (FileNotFoundError):
             logging.exception(self.__class__.__name__)

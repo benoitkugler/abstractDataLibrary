@@ -197,6 +197,9 @@ class abstractInterInterfaces:
 
     BASE_CLASS = data_model.abstractBase
 
+    INTERFACES_MODULE = None
+    """Modules containing all interfaces required"""
+
     base: data_model.abstractBase
 
     def __init__(self):
@@ -228,8 +231,6 @@ class abstractInterInterfaces:
             json.dump(self.preferences, f, cls=formats.JsonEncoder)
         logging.info(f"Preference {key} updated.")
 
-
-
     def load_remote_data(self, callback_etat=print):
         """
         Load remote data. On succes, build base.
@@ -242,9 +243,10 @@ class abstractInterInterfaces:
         self.base = self.BASE_CLASS.load_from_db(callback_etat=callback_etat)
 
     def _load_users(self):
+        """Default implentation requires users from DB.
+        Should setup `users` attribute"""
         r = sql.abstractRequetesSQL.get_users()()
         self.users = {d["id"]: dict(d) for d in r}
-
 
     def reset_interfaces(self):
         """Reset data and rendering for all interfaces"""
@@ -257,9 +259,13 @@ class abstractInterInterfaces:
 
     def load_modules(self):
         """Should instance interfaces and set them to interface, following `modules`"""
-        raise NotImplementedError
-
-
+        if self.INTERFACES_MODULE is None:
+            raise NotImplementedError("A module containing interfaces modules "
+                                      "should be setup in INTERFACES_MODULE !")
+        else:
+            for module, permission in self.modules.items():
+                i = getattr(self.INTERFACES_MODULE, module).Interface(self, permission)
+                self.interfaces[module] = i
 
     def export_data(self, bases, savedir):
         """Packs and zip asked bases (from base).
@@ -324,7 +330,7 @@ class abstractInterInterfaces:
                 s = protege_data(s, False)
                 modules = json.loads(s)["modules"]
         except (KeyError, FileNotFoundError) as e:
-            raise StructureError("Last modules used can't be read !")
+            raise StructureError("Impossible des lire les derniers modules utilisés !")
         else:
             self.modules = {k: 0 for k in modules}  # low permission
             self.mode_online = False
@@ -337,7 +343,7 @@ class abstractInterInterfaces:
         self.base = self.BASE_CLASS.load_from_local()
         self.load_modules()
 
-    def load_data_from_DevDb(self):
+    def direct_load_remote_db(self):
         tables = [t for t in sorted(self.base.TABLES)]
         l = sql.abstractRequetesSQL.load_data(tables)()
         self.base = self.BASE_CLASS(l)

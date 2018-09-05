@@ -63,7 +63,7 @@ def load_configuration():
         raise StructureError("Invalid configuration files ! Détails : {}".format(e))
 
 def init_modules():
-    """Should pass to python modules init_module the required parameters"""
+    """Should pass to python modules init_module function the required parameters"""
     pass
 
 
