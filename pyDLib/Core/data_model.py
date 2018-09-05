@@ -4,9 +4,8 @@ import logging
 import re
 from typing import Optional, Union, Any
 
-from . import groups, sql, formats
 from . import StructureError, protege_data
-
+from . import groups, sql, formats
 
 MIN_CHAR_SEARCH = 2
 
@@ -19,7 +18,7 @@ class abstractAcces:
     TABLE = None
     """name of table acces refers to"""
 
-    FIELDS_OPTIONS = []
+    FIELDS_OPTIONS = set()
     """Fields names of data grouped in the DB, which should be still be acceded as one field"""
 
 
@@ -35,12 +34,20 @@ class abstractAcces:
 
     def __getitem__(self, item: str) -> Any:
         """Gives priority to modifications"""
-        if item in self.modifications:
-            return self.modifications[item]
-        elif self.Id:
-            return getattr(self.base, self.TABLE)[self.Id].get(item, None)
+        if item in self.FIELDS_OPTIONS:
+            if "options" in self.modifications:
+                return self.modifications["options"][item]
+            elif self.Id:
+                return getattr(self.base, self.TABLE)[self.Id].get("options", {}).get(item, None)
+            else:
+                return None
         else:
-            return None
+            if item in self.modifications:
+                return self.modifications[item]
+            elif self.Id:
+                return getattr(self.base, self.TABLE)[self.Id].get(item, None)
+            else:
+                return None
 
     def modifie(self, key: str, value: Any) -> None:
         """Store the modification. `value` should be dumped in DB compatible format."""
@@ -49,15 +56,19 @@ class abstractAcces:
         else:
             self.modifications[key] = value
 
+    def _dict_to_SQL(self, dic):
+        r = sql.abstractRequetesSQL.update(self.TABLE, dic, self.Id)
+        return sql.Executant([r])
+
     def save(self) -> sql.Executant:
         """Prepare a SQL request to save the current modifications.
         Returns actually a LIST of requests (which may be of length one).
         Note than it can include modifications on other part of the data.
         After succes, the base should be updated.
         """
-        r = sql.abstractRequetesSQL.update(self.TABLE, self.modifications, self.Id)
+        r = self._dict_to_SQL(self.modifications)
         self.modifications.clear()
-        return sql.Executant([r])
+        return r
 
     def __str__(self):
         return f"Acces of table {self.TABLE} with id {self.Id} and modifications {self.modifications}"
