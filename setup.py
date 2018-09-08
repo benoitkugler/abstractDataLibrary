@@ -1,11 +1,13 @@
 import setuptools
 
+from pyDLib import __version__
+
 with open("README.md", "r") as fh:
     long_description = fh.read()
 
 setuptools.setup(
     name='pyDLib',
-    version='0.0.1',
+    version=__version__,
     packages=setuptools.find_packages(),
     url='https://github.com/benoitkugler/abstractDataLibrary',
     license='MIT License',
