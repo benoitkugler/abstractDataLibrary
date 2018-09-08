@@ -56,7 +56,7 @@ PARAMETERS = {}
 def load_configuration():
     try:
         for name, path in PARAMETERS_PATH.items():
-            with open("configuration/options.json", encoding='utf-8') as f:
+            with open(path, encoding='utf-8') as f:
                 dic = json.load(f)
             PARAMETERS[name] = dic
     except (FileNotFoundError, json.JSONDecodeError) as e:

@@ -15,7 +15,6 @@ class abstractModule(QFrame):
         self.status_bar = status_bar
         self.interface = interface
 
-        # Convenient callbacks
         def on_error(s, wait=False):
             logging.error(s)
             fenetres.WarningBox(s)
@@ -27,13 +26,8 @@ class abstractModule(QFrame):
             else:
                 self.status_bar.showMessage(str(l), 3000)
 
-        self._set_erreur_reussite(on_error, on_done)
-
-    def _set_erreur_reussite(self, sortie_erreur_GUI, sortie_standard_GUI):
-        """sortie_erreur_GUI: Called on error (argument: str) ;
-        sortie_standard_GUI: Called on succes (argument: str)"""
-        self.interface.sortie_erreur_GUI = sortie_erreur_GUI
-        self.interface.sortie_standard_GUI = sortie_standard_GUI
+        self.interface.sortie_erreur_GUI = on_error
+        self.interface.sortie_standard_GUI = on_done
 
     def set_callbacks(self, **dic_functions):
         """Register callbacks needed by the interface object"""

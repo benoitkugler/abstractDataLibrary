@@ -73,7 +73,6 @@ class abstractAcces:
     def __str__(self):
         return f"Acces of table {self.TABLE} with id {self.Id} and modifications {self.modifications}"
 
-
     def modifie_options(self,field_option,value):
         """Set options in modifications.
         All options will be stored since it should be grouped in the DB."""

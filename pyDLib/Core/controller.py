@@ -48,8 +48,8 @@ class abstractInterface:
         self.base = main.base
         self.permission = permission
 
-        self.sortie_erreur_GUI = print
-        self.sortie_standard_GUI = print
+        self.sortie_erreur_GUI = lambda s, wait=False: print(s)
+        self.sortie_standard_GUI = lambda s, wait=False: print(s)
 
         self.updates = []  # graphiques updates
         self.resets = []  # graphiques resets
