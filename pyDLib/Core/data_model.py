@@ -196,13 +196,16 @@ class abstractBase:
 
 
     @classmethod
-    def load_from_db(cls, callback_etat=print):
+    def load_from_db(cls, callback_etat=print, out=None):
         """Launch data fetching then load data received.
         The method _load_remote_db should be overridden.
+        If out is given, datas are set in it, instead of returning a new base object.
         """
         dic = cls._load_remote_db(callback_etat)
         callback_etat("Chargement...", 2, 3)
-        return cls(dic)
+        if out is None:
+            return cls(dic)
+        cls.__init__(out, datas=dic)
 
     @classmethod
     def _load_remote_db(cls, callback_etat):
@@ -267,7 +270,6 @@ class abstractBase:
         """Return a dictionnary of current tables"""
         return {table_name: getattr(self, table_name).dumps() for table_name in self.TABLES}
 
-
     def _get_table(self, nom, data):
         return self.TABLES[nom].from_data(data)
 
@@ -276,7 +278,6 @@ class abstractBase:
             assert i in self.TABLES
             table = self._get_table(i, v)
             setattr(self, i, table)
-
 
     def save_to_local(self, callback_etat=print):
         """

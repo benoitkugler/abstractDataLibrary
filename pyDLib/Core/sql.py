@@ -29,7 +29,7 @@ def init_module(remote_credences=None,local_path=None):
         RemoteConnexion.NAME = remote_credences["DB"]["name"]
         MonoExecutant.ConnectionClass = RemoteConnexion
         Executant.ConnectionClass = RemoteConnexion
-        abstractRequetesSQL.setup_marks("pscycopg2")
+        abstractRequetesSQL.setup_marks("psycopg2")
     elif local_path is not None:
         LocalConnexion.PATH = local_path
         MonoExecutant.ConnectionClass = LocalConnexion
@@ -62,6 +62,10 @@ class Executant(list):
     def __bool__(self):
         return sum(bool(x) for x in self) >= 1
 
+    def __add__(self, other):
+        return Executant(super(Executant, self).__add__(other))
+
+    __radd__ = __add__
 
 class abstractConnexion:
     """Base class for the two connexions classes.
@@ -89,11 +93,12 @@ class abstractConnexion:
     def _execute_one(self,cursor,req,args):
         cursor.execute(req,args)
         try:
-            res = cursor.fetchall()
-        except self.SQL.ProgrammingError:
-            logging.exception("")
-            res = []
-        return res
+            return cursor.fetchall()
+        except self.SQL.ProgrammingError as e:
+            if str(e) == "no results to fetch":
+                return []
+            logging.exception("SQL Programming Error :")
+            return []
 
 
     def execute(self, requete_SQL):
@@ -285,7 +290,8 @@ class abstractRequetesSQL():
             req = "UPDATE {table} SET {SET} WHERE id = " + cls.named_style.format('__id') +  " RETURNING * "
             r = abstractRequetesSQL.formate(req, SET=dic, table=table, args=dict(dic, __id=Id))
             return MonoExecutant(r)
-        return MonoExecutant()
+        return MonoExecutant((f"SELECT * FROM {table} WHERE id = " + cls.named_style.format('__id'),
+                              {"__id": Id}))
 
 
     @staticmethod

@@ -62,7 +62,8 @@ def load_configuration():
     except (FileNotFoundError, json.JSONDecodeError) as e:
         raise StructureError("Invalid configuration files ! Détails : {}".format(e))
 
-def init_modules():
+
+def init_modules(dev=False):
     """Should pass to python modules init_module function the required parameters"""
     pass
 
@@ -70,7 +71,7 @@ def init_modules():
 def init_all(dev=False):
     load_credences(dev=dev)
     load_configuration()
-    init_modules()
+    init_modules(dev=dev)
 
 
 ## ------------------- Version notes ------------------- ##

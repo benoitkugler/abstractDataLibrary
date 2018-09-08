@@ -215,9 +215,9 @@ class abstractSearch():
     @staticmethod
     def in_telephones(objet, pattern):
         """ abstractSearch dans une liste de téléphones. Ignore les caractères non numérique du `pattern`. """
-        objet = objet or ""
+        objet = objet or []
         pattern = abstractSearch.REGEXP_TELEPHONE.sub('', pattern)
-        if pattern == '':
+        if pattern == '' or not objet:
             return False
         return max(bool(re.search(pattern, t)) for t in objet)
 

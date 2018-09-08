@@ -52,11 +52,9 @@ class Collection(sortableListe):
         super().__init__(l_acces)
         self.infos = {}
 
-
     def clear(self):
         list.__init__(self)
         self.infos = {}
-
 
     def append(self, acces, **kwargs):
         """Append acces to list. Quite slow since it checks uniqueness.
@@ -67,7 +65,6 @@ class Collection(sortableListe):
         list.append(self, acces)
         if kwargs:
             self.infos[acces.Id] = kwargs
-
 
     def remove_id(self,key):
         """Suppress acces with id = key"""
