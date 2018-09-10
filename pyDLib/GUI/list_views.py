@@ -2,15 +2,16 @@
 from typing import List, Tuple
 
 from PyQt5.QtCore import Qt, pyqtSignal, QAbstractTableModel, QModelIndex
-from PyQt5.QtGui import QFont, QBrush, QPaintEvent, QPainter
+from PyQt5.QtGui import QFont, QBrush, QPaintEvent, QPainter, QColor, QPen
 from PyQt5.QtWidgets import QAbstractItemView, QTableView, \
     QAbstractScrollArea, QFrame, QLabel, QGridLayout, QLineEdit, QPushButton, QHeaderView, QVBoxLayout, QSizePolicy, \
-    QHBoxLayout
+    QStyledItemDelegate
 
 from pyDLib.Core.groups import sortableListe
-from . import Color, PARAMETERS, fenetres, Icons, ButtonIcon
+from . import Color, PARAMETERS, fenetres, Icons, fields
 from ..Core import formats, groups, data_model, controller
 
+MIN_CHAR_SEARCH = data_model.MIN_CHAR_SEARCH
 
 def _custom_font(is_bold=False, is_italic=False):
     font = QFont()
@@ -68,7 +69,6 @@ class Renderer():
 
 
 ### ------------------- Models ------------------- ###
-
 
 class abstractModel(QAbstractTableModel):
     """Model to visualize a list of items (ie dict like objects).
@@ -268,6 +268,67 @@ class MultiSelectModel(InternalDataModel):
         self._set_id(Id, is_added, self.index(row, 0))
 
 
+## ------------------Custom delegate  ------------------ ##
+
+class delegateAttributs(QStyledItemDelegate):
+    CORRES = {"montant": fields.MontantEditable, "mode_paiement": fields.ModePaiementEditable,
+              "valeur": fields.EurosEditable,
+              "description": fields.DefaultEditable, "quantite": fields.EntierEditable,
+              "obligatoire": fields.BoolEditable}
+    """Correspondance between fields and widget classes"""
+
+    size_hint_: tuple
+
+    def __init__(self, parent):
+        QStyledItemDelegate.__init__(self, parent)
+        self.size_hint_ = None
+        self.row_done_ = None
+
+    @staticmethod
+    def paint_filling_rect(option, painter, proportion):
+        rect = option.rect
+        painter.save()
+        color = QColor(0, 255 * proportion / 100, 100 - proportion)
+        painter.setPen(QPen(color, 0.5, Qt.SolidLine, Qt.RoundCap, Qt.RoundJoin))
+        painter.setBackgroundMode(Qt.OpaqueMode)
+        painter.setBackground(QBrush(color))
+        painter.setBrush(QBrush(color))
+        rect.setWidth(rect.width() * proportion / 100)
+        painter.drawRoundedRect(rect, 5, 5)
+        painter.restore()
+
+    @staticmethod
+    def _get_field(index):
+        return index.model().header[index.column()]
+
+    def sizeHint(self, option, index):
+        if self.size_hint_ and self.size_hint_[0] == index:
+            return self.size_hint_[1]
+        return super().sizeHint(option, index)
+
+    def setEditorData(self, editor, index):
+        value = index.data(role=Qt.EditRole)
+        editor.set_data(value)
+        self.sizeHintChanged.emit(index)
+
+    def createEditor(self, parent, option, index):
+        field = self._get_field(index)
+        other = index.data(role=Qt.UserRole)
+        classe = self.CORRES[field]
+        w = classe(parent, other) if other else classe(parent)
+        self.size_hint_ = (index, w.sizeHint())
+        self.row_done_ = index.row()
+        return w
+
+    def destroyEditor(self, editor, index):
+        self.size_hint_ = None
+        super().destroyEditor(editor, index)
+
+    def setModelData(self, editor, model, index):
+        value = editor.get_data()
+        model.set_data(index, value)
+
+
 ### -------------------- Views -------------------- ###
 
 
@@ -284,6 +345,12 @@ class abstractList(QTableView):
 
     SELECTION_BEHAVIOR = QAbstractItemView.SelectRows
     SELECTION_MODE = QAbstractItemView.SingleSelection
+
+    DELEGATE_CLASS = None
+    """If given, use this class as delegate"""
+
+    RESIZE_COLUMN = False
+    """Whe usin delegate, if this is true, resize columns on edit."""
 
     def __init__(self, model):
         super().__init__()
@@ -307,6 +374,18 @@ class abstractList(QTableView):
         self.setMinimumSize(self.MIN_WIDTH,self.MIN_HEIGHT)
 
         self.setEditTriggers(QTableView.DoubleClicked)
+
+        if self.DELEGATE_CLASS is not None:
+            self._setup_delegate()
+
+    def _setup_delegate(self):
+        """Add resize behavior on edit"""
+        delegate = self.DELEGATE_CLASS(self)
+        self.setItemDelegate(delegate)
+        delegate.sizeHintChanged.connect(lambda index: self.resizeRowToContents(index.row()))
+        if self.RESIZE_COLUMN:
+            delegate.sizeHintChanged.connect(lambda index: self.resizeColumnToContents(index.column()))
+        delegate.closeEditor.connect(lambda ed: self.resizeRowToContents(delegate.row_done_))
 
     def model(self) -> abstractModel:
         return super(abstractList, self).model()
@@ -382,7 +461,6 @@ class SearchList(abstractList):
     PLACEHOLDER = "Aucune entrée ne correspont à la recherche."
 
     selected = pyqtSignal(data_model.abstractAcces)
-
     """Emitted on selection. Returns Id,label"""
 
     def __init__(self, entete, placeholder=None):
@@ -460,7 +538,7 @@ class abstractAccesId(fenetres.Window):
     LIST_ENTETE = []
     LIST_PLACEHOLDER = "No items found."
 
-    SEARCH_PLACEHOLDER = f"Please type at least {data_model.MIN_CHAR_SEARCH} characters..."
+    SEARCH_PLACEHOLDER = f"Please type at least {MIN_CHAR_SEARCH} characters..."
 
     def __init__(self, search_hook):
         super().__init__(self.WINDOW_TITLE)
@@ -567,9 +645,6 @@ class SearchField(QLineEdit):
         self.setPlaceholderText(placeholder)
         self.setClearButtonEnabled(True)
         self.textChanged.connect(lambda s : search_hook(s or None))
-
-
-
 
 
 class CadreView(QFrame):

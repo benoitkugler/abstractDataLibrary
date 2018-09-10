@@ -26,7 +26,6 @@ def load_options():
         dic_default = json.loads(bjson.decode("utf-8"))
 
     try:
-
         with open(os.path.join(CONFIGURATION_PATH,"GUI_options.json"), encoding='utf-8') as f:
             dic = json.load(f)
     except FileNotFoundError:
