@@ -100,7 +100,6 @@ class abstractConnexion:
             logging.exception("SQL Programming Error :")
             return []
 
-
     def execute(self, requete_SQL):
         """Execute one or many requests
         requete_SQL may be a tuple(requete,args) or a list of such tuples
@@ -124,6 +123,8 @@ class abstractConnexion:
             self.connexion.close()
         return res
 
+    def close(self):
+        self.connexion.close()
 
 sqlite3.register_converter("json",lambda s : json.loads(s,object_hook=formats.date_decoder))
 sqlite3.register_adapter(list,lambda l : json.dumps(l,cls=formats.JsonEncoder))
