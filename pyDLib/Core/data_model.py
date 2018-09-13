@@ -56,6 +56,11 @@ class abstractAcces:
         else:
             self.modifications[key] = value
 
+    def modifie_many(self, dic: dict):
+        """Convenience function which calls modifie on each element of dic"""
+        for i, v in dic.items():
+            self.modifie(i, v)
+
     def _dict_to_SQL(self, dic):
         r = sql.abstractRequetesSQL.update(self.TABLE, dic, self.Id)
         return sql.Executant([r])
