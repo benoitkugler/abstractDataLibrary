@@ -2,13 +2,12 @@
 from typing import List, Tuple
 
 from PyQt5.QtCore import Qt, pyqtSignal, QAbstractTableModel, QModelIndex
-from PyQt5.QtGui import QFont, QBrush, QPaintEvent, QPainter, QColor, QPen
+from PyQt5.QtGui import QFont, QBrush, QPaintEvent, QPainter
 from PyQt5.QtWidgets import QAbstractItemView, QTableView, \
-    QAbstractScrollArea, QFrame, QLabel, QGridLayout, QLineEdit, QPushButton, QHeaderView, QVBoxLayout, QSizePolicy, \
-    QStyledItemDelegate
+    QAbstractScrollArea, QFrame, QLabel, QGridLayout, QLineEdit, QPushButton, QHeaderView, QVBoxLayout, QSizePolicy
 
 from pyDLib.Core.groups import sortableListe
-from . import Color, PARAMETERS, fenetres, Icons, fields
+from . import Color, PARAMETERS, fenetres, Icons
 from ..Core import formats, groups, data_model, controller
 
 MIN_CHAR_SEARCH = data_model.MIN_CHAR_SEARCH
@@ -266,67 +265,6 @@ class MultiSelectModel(InternalDataModel):
         if row is None:
             return
         self._set_id(Id, is_added, self.index(row, 0))
-
-
-## ------------------Custom delegate  ------------------ ##
-
-class delegateAttributs(QStyledItemDelegate):
-    CORRES = {"montant": fields.MontantEditable, "mode_paiement": fields.ModePaiementEditable,
-              "valeur": fields.EurosEditable,
-              "description": fields.DefaultEditable, "quantite": fields.EntierEditable,
-              "obligatoire": fields.BoolEditable}
-    """Correspondance between fields and widget classes"""
-
-    size_hint_: tuple
-
-    def __init__(self, parent):
-        QStyledItemDelegate.__init__(self, parent)
-        self.size_hint_ = None
-        self.row_done_ = None
-
-    @staticmethod
-    def paint_filling_rect(option, painter, proportion):
-        rect = option.rect
-        painter.save()
-        color = QColor(0, 255 * proportion / 100, 100 - proportion)
-        painter.setPen(QPen(color, 0.5, Qt.SolidLine, Qt.RoundCap, Qt.RoundJoin))
-        painter.setBackgroundMode(Qt.OpaqueMode)
-        painter.setBackground(QBrush(color))
-        painter.setBrush(QBrush(color))
-        rect.setWidth(rect.width() * proportion / 100)
-        painter.drawRoundedRect(rect, 5, 5)
-        painter.restore()
-
-    @staticmethod
-    def _get_field(index):
-        return index.model().header[index.column()]
-
-    def sizeHint(self, option, index):
-        if self.size_hint_ and self.size_hint_[0] == index:
-            return self.size_hint_[1]
-        return super().sizeHint(option, index)
-
-    def setEditorData(self, editor, index):
-        value = index.data(role=Qt.EditRole)
-        editor.set_data(value)
-        self.sizeHintChanged.emit(index)
-
-    def createEditor(self, parent, option, index):
-        field = self._get_field(index)
-        other = index.data(role=Qt.UserRole)
-        classe = self.CORRES[field]
-        w = classe(parent, other) if other else classe(parent)
-        self.size_hint_ = (index, w.sizeHint())
-        self.row_done_ = index.row()
-        return w
-
-    def destroyEditor(self, editor, index):
-        self.size_hint_ = None
-        super().destroyEditor(editor, index)
-
-    def setModelData(self, editor, model, index):
-        value = editor.get_data()
-        model.set_data(index, value)
 
 
 ### -------------------- Views -------------------- ###
