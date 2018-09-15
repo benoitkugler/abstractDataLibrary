@@ -256,7 +256,6 @@ class abstractRender():
         objet = objet or []
         return " ; ".join(str(t) for t in objet)
 
-
     @staticmethod
     def pourcent(objet):
         return "" if objet is None else f"{objet} %"

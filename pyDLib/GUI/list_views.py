@@ -399,7 +399,7 @@ class SearchList(abstractList):
     PLACEHOLDER = "Aucune entrée ne correspont à la recherche."
 
     selected = pyqtSignal(data_model.abstractAcces)
-    """Emitted on selection. Returns Id,label"""
+    """Emitted on selection"""
 
     def __init__(self, entete, placeholder=None):
         model = InternalDataModel(sortableListe(), entete)
@@ -409,7 +409,6 @@ class SearchList(abstractList):
 
         self.setMouseTracking(True)  # Lines highlight
         self.setProperty("highlight", True)
-
 
     def on_click(self, index):
         acces = self.model().get_item(index)
