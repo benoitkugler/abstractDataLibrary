@@ -218,7 +218,8 @@ class DefaultFixe(abstractSimpleField):
 class DateFixe(abstractSimpleField):
     FONCTION_AFF = staticmethod(formats.abstractRender.date)
 
-class DateHeureFixe(QLabel):
+
+class DateHeureFixe(abstractSimpleField):
     FONCTION_AFF = staticmethod(formats.abstractRender.dateheure)
 
 
@@ -490,7 +491,7 @@ def DateHeure(value, is_editable):
     if is_editable:
         raise NotImplementedError("No editable datetime widget !")
     w = DateHeureFixe()
-    w.set_value(value)
+    w.set_data(value)
     return w
 
 """Correspondance field -> widget (callable)"""
