@@ -428,12 +428,11 @@ class SimpleList(abstractList):
 
     SHOW_GRID = False
 
-    def __init__(self, liste, header, is_editable):
+    def __init__(self, liste, header):
         model = InternalDataModel(liste, header)
         super().__init__(model)
         self.setShowGrid(self.SHOW_GRID)
         self.horizontalHeader().setVisible(header is not None)
-        self.verticalHeader().setVisible(is_editable)
         self.setSizeAdjustPolicy(QAbstractScrollArea.AdjustToContents)
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         self.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeToContents)
@@ -655,7 +654,7 @@ class abstractMutableList(QFrame):
         layout.addWidget(add_button)
 
     def _create_view(self, collection, is_editable):
-        v = SimpleList(collection, self.LIST_HEADER, is_editable)
+        v = SimpleList(collection, self.LIST_HEADER)
         v.PLACEHOLDER = self.LIST_PLACEHOLDER
         return v
 
