@@ -61,7 +61,7 @@ class Renderer():
             return QBrush(Color(color))
         elif role == Qt.BackgroundRole:
             sexe = info.get("sexe", None)
-            couleur = PARAMETERS["sexe_color"][sexe] if sexe else "transparent"
+            couleur = PARAMETERS["OPTIONS"]["sexe_color"][sexe] if sexe else "transparent"
             return QBrush(Color(couleur))
         elif role == Qt.EditRole:
             return value
@@ -102,12 +102,15 @@ class abstractModel(QAbstractTableModel):
         acces, attr = self.collection[index.row()], self.header[index.column()]
         value = self._acces_data(acces, attr)
         info = self.collection.get_info(key=index.row())
-
         return self.RENDERER.data(attr, value, info, role)
 
     def headerData(self, section: int, orientation: Qt.Orientation, role=None):
         attribut = (orientation == Qt.Horizontal) and self.header[section] or None
-        return self.RENDERER.headerData(section, orientation, role, attribut, self.sort_state)
+        try:
+            return self.RENDERER.headerData(section, orientation, role, attribut, self.sort_state)
+        except KeyError:
+            print(self.__class__.__name__)
+            raise
 
     def flags(self, index: QModelIndex):
         """All fields are selectable"""
