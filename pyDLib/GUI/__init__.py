@@ -1,4 +1,5 @@
-"""Define shortcut for icons. PARAMETERS["IMAGES_PATH"] should be set to use them."""
+"""Define GUI configuration.
+    For example, icons can be added in PARAMETERS["OPTIONS"]["icones"]. It should be a dict of filenames, relative to PARAMETERS["IMAGES_PATH"] (which has to be set)"""
 import json
 import logging
 import os

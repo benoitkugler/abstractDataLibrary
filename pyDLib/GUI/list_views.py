@@ -279,6 +279,9 @@ class abstractList(QTableView):
 
     MIN_HEIGHT = 60
     MIN_WIDTH = 40
+    MAX_HEIGHT = None
+    MAX_WIDTH = None
+
     VERTICAL_HEADER_VISIBLE = False
 
     SELECTION_BEHAVIOR = QAbstractItemView.SelectRows
@@ -310,6 +313,10 @@ class abstractList(QTableView):
 
         self.setSizeAdjustPolicy(QAbstractScrollArea.AdjustToContentsOnFirstShow)
         self.setMinimumSize(self.MIN_WIDTH,self.MIN_HEIGHT)
+        if self.MAX_HEIGHT:
+            self.setMaximumHeight(self.MAX_HEIGHT)
+        if self.MAX_WIDTH:
+            self.setMaximumWidth(self.MAX_WIDTH)
 
         self.setEditTriggers(QTableView.DoubleClicked)
 
