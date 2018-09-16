@@ -4,8 +4,8 @@ import logging
 import re
 from typing import Optional, Union, Any
 
-from . import StructureError, protege_data
-from . import groups, sql, formats
+from . import StructureError
+from . import groups, sql, formats, security
 
 MIN_CHAR_SEARCH = 2
 
@@ -248,7 +248,7 @@ class abstractBase:
         try:
             with open(cls.LOCAL_DB_PATH, 'rb') as f:
                 b = f.read()
-                s = protege_data(b, False)
+                s = security.protege_data(b, False)
         except (FileNotFoundError, KeyError):
             logging.exception(cls.__name__)
             raise StructureError("Erreur dans le chargement de la sauvegarde locale !")
@@ -297,7 +297,7 @@ class abstractBase:
         d = self.dumps()
         s = json.dumps(d, indent=4, cls=formats.JsonEncoder)
         callback_etat("Chiffrement...", 1, 3)
-        s = protege_data(s, True)
+        s = security.protege_data(s, True)
         callback_etat("Enregistrement...", 2, 3)
         try:
             with open(self.LOCAL_DB_PATH, 'wb') as f:

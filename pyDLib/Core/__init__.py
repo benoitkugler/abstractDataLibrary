@@ -2,6 +2,8 @@ import json
 import logging
 import re
 
+from . import security
+
 
 class ConnexionError(Exception):
     """In case of networkin error"""
@@ -24,26 +26,13 @@ def id_from_name(s):
     return re.sub("[^a-zA-Z0-9]", "", s)
 
 
-def protege_data(datas_str, sens):
-    """
-    Used to crypt/decrypt data before saving locally.
-    Override if securit is needed.
-    bytes -> str when decrypting
-    str -> bytes when crypting
-
-    :param datas_str: When crypting, str. when decrypting bytes
-    :param sens: True to crypt, False to decrypt
-    """
-    return bytes(datas_str, encoding="utf8") if sens else str(datas_str, encoding="utf8")
-
-
 def load_credences(dev=False):
     global CREDENCES
     path = dev and FICHIER_CREDENCES_DEV or FICHIER_CREDENCES
     try:
         with open(path, 'rb') as f:
             encrypt = f.read()
-            json_str = protege_data(encrypt, False)
+            json_str = security.protege_data(encrypt, False)
             CREDENCES = json.loads(json_str)
     except (FileNotFoundError, json.JSONDecodeError) as e:
         raise StructureError(f"Invalid credences file ! Details : {e}")

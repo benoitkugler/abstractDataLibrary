@@ -3,8 +3,8 @@ import json
 import logging
 import os
 
-from . import data_model, groups, formats, sql, threads
-from . import init_all, protege_data, StructureError
+from . import data_model, groups, formats, sql, threads, security
+from . import init_all, StructureError
 
 
 class Callbacks:
@@ -297,7 +297,7 @@ class abstractInterInterfaces:
         try:
             with open("local/init", "rb") as f:
                 s = f.read()
-                s = protege_data(s, False)
+                s = security.protege_data(s, False)
                 self.autolog = json.loads(s)["autolog"]
         except FileNotFoundError:
             return
@@ -314,7 +314,7 @@ class abstractInterInterfaces:
 
             dic = {"autolog": self.autolog, "modules": self.modules}
             s = json.dumps(dic, indent=4, ensure_ascii=False)
-            b = protege_data(s, True)
+            b = security.protege_data(s, True)
             with open("local/init", "wb") as f:
                 f.write(b)
 
@@ -327,7 +327,7 @@ class abstractInterInterfaces:
         try:
             with open("local/init", "rb") as f:
                 s = f.read()
-                s = protege_data(s, False)
+                s = security.protege_data(s, False)
                 modules = json.loads(s)["modules"]
         except (KeyError, FileNotFoundError) as e:
             raise StructureError("Impossible des lire les derniers modules utilisés !")
