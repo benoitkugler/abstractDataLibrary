@@ -656,6 +656,7 @@ class abstractMutableList(QFrame):
     def _create_view(self, collection, is_editable):
         v = SimpleList(collection, self.LIST_HEADER)
         v.PLACEHOLDER = self.LIST_PLACEHOLDER
+        v.VERTICAL_HEADER_VISIBLE = is_editable
         return v
 
     def on_add(self, item):

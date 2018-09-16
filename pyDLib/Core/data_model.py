@@ -21,6 +21,8 @@ class abstractAcces:
     FIELDS_OPTIONS = set()
     """Fields names of data grouped in the DB, which should be still be acceded as one field"""
 
+    modifications: dict
+    Id: Union[int, str]
 
     def __init__(self, base: 'abstractBase', Id: Optional[Union[str, int]]) -> None:
         """
