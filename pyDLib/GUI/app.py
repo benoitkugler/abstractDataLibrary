@@ -180,6 +180,8 @@ class Application(QMainWindow):
 
     def reload_css(self):
         load_options()
+        style = PARAMETERS["MAIN_STYLE"] + PARAMETERS["WIDGETS_STYLE"]
+        self.setStyleSheet(style)
         self.theory_main.reset_interfaces()
 
     def on_update(self):
