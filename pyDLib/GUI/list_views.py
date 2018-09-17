@@ -132,6 +132,7 @@ class abstractModel(QAbstractTableModel):
             self.sort_state = (section, True)
         self.endResetModel()
 
+    # TODO: Enhance remove line
     def remove_line(self, section):
         """Base implementation just pops the item from collection.
         Re-implements to add global behaviour
@@ -431,9 +432,12 @@ class SearchList(abstractList):
 
 class SimpleList(abstractList):
     """Uses an InternelDataModel.
-    If header is None, doesn't show header, set only one column, and acces data directly at item. """
+    If header is None, doesn't show header, set only one column, and acces data directly at item.
+    Warging : with two many items, if RESIZE_TO_CONTENTS may be slow !
+    """
 
     SHOW_GRID = False
+    RESIZE_TO_CONTENTS = True
 
     def __init__(self, liste, header):
         model = InternalDataModel(liste, header)
@@ -442,7 +446,8 @@ class SimpleList(abstractList):
         self.horizontalHeader().setVisible(header is not None)
         self.setSizeAdjustPolicy(QAbstractScrollArea.AdjustToContents)
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
-        self.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeToContents)
+        if self.RESIZE_TO_CONTENTS:
+            self.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeToContents)
 
         self.setWordWrap(True)
         self.setTextElideMode(Qt.ElideMiddle)
@@ -546,7 +551,7 @@ class abstractBoutonAccesId(QPushButton):
         """Display given field of acces.
         Field must be registered in formats.ASSOCIATION.
         """
-        return formats.ASSOCIATION[field][1](acces[field])
+        return formats.ASSOCIATION[field][2](acces[field])
 
     def __init__(self, is_editable, base):
         super().__init__(self.PLACEHOLDER)

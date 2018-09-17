@@ -6,8 +6,8 @@ QMainWindow {
 }
 
 
-QStackedWidget#main-tabs{
-	padding: 10px;
+QStackedWidget#block-principal{
+	padding: 5px;
 }
 
 

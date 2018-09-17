@@ -326,7 +326,8 @@ class abstractDetails(QFrame):
 
     def on_widget_data_changed(self, key, value):
         self.acces.modifie(key, value)
-        self.boutton_reset.setEnabled(True)
+        if hasattr(self, "boutton_reset"):
+            self.boutton_reset.setEnabled(True)
 
     def cree_boutton_valider(self):
         b = QPushButton("Valider")
