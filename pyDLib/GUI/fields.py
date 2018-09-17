@@ -80,7 +80,7 @@ class Tels(list_views.abstractMutableList):
     LIST_PLACEHOLDER = "Aucun numéro."
     LIST_HEADER = None
 
-    BOUTON_NOUVEAU = NouveauTelephone
+    BOUTON = NouveauTelephone
 
 
 

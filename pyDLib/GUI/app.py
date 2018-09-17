@@ -138,7 +138,7 @@ class Application(QMainWindow):
         """Display login screen. May ask for local data loading if from_local is True."""
         if self.toolbar:
             self.removeToolBar(self.toolbar)
-        widget_login = login.Loading(self.statusBar(), self.main_abstrait)
+        widget_login = login.Loading(self.statusBar(), self.theory_main)
         self.centralWidget().addWidget(widget_login)
         widget_login.loaded.connect(self.init_tabs)
         widget_login.canceled.connect(self._quit)
@@ -202,12 +202,12 @@ class Application(QMainWindow):
         f.exec_()
         if f.retour:
             url, with_config = f.retour
-            self.main_abstrait.update_credences(url)
+            self.theory_main.update_credences(url)
             if with_config:
                 self.progress_bar = common.LoadingMonitor("Configuration", self)
                 self.progress_bar.setLabel("Mise à jour des fichiers de configuration...")
                 load_credences()
-                self.main_abstrait.update_configuration(self.progress_bar.monitor)
+                self.theory_main.update_configuration(self.progress_bar.monitor)
                 self.progress_bar.accept()
                 return True
 

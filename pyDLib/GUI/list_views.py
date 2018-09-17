@@ -106,11 +106,7 @@ class abstractModel(QAbstractTableModel):
 
     def headerData(self, section: int, orientation: Qt.Orientation, role=None):
         attribut = (orientation == Qt.Horizontal) and self.header[section] or None
-        try:
-            return self.RENDERER.headerData(section, orientation, role, attribut, self.sort_state)
-        except KeyError:
-            print(self.__class__.__name__)
-            raise
+        return self.RENDERER.headerData(section, orientation, role, attribut, self.sort_state)
 
     def flags(self, index: QModelIndex):
         """All fields are selectable"""
@@ -581,6 +577,8 @@ class abstractBoutonAccesId(QPushButton):
     def get_data(self):
         if self.AS_ACCES:
             return self.acces
+        if self.acces is None:
+            return None
         return self.acces.Id
 
     def set_data(self, Id):

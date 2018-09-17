@@ -1,7 +1,6 @@
 """Implements severals windows """
-from PyQt5.QtGui import QWindow
-from PyQt5.QtWidgets import QMessageBox, QPushButton, QDialog, QVBoxLayout
 from PyQt5.QtCore import Qt
+from PyQt5.QtWidgets import QMessageBox, QPushButton, QDialog, QVBoxLayout
 
 from . import AppIcon, PARAMETERS
 
@@ -96,10 +95,12 @@ class Window(QDialog):
     """Standalone window, with icon and style sheet."""
 
     def __init__(self, titre, parent=None, **kwargs):
+        no_flags = kwargs.pop("no_flags", False)
         QDialog.__init__(self, parent, **kwargs)
         self.setWindowTitle(titre)
         self.setWindowIcon(AppIcon())
-        self.setWindowFlags(Qt.CustomizeWindowHint | Qt.WindowCloseButtonHint)
+        if not no_flags:
+            self.setWindowFlags(Qt.CustomizeWindowHint | Qt.WindowCloseButtonHint)
 
         style = PARAMETERS["WIDGETS_STYLE"]
         self.setStyleSheet(style)

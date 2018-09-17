@@ -16,7 +16,8 @@ from ..Core import data_model
 class LoadingMonitor(Window):
 
     def __init__(self, titre, parent):
-        super().__init__(titre, parent=parent)
+        super().__init__(titre, parent=parent, no_flags=True)
+
         self.label = QLabel()
         self.progress_bar = QProgressBar()
         self.add_widget(self.label)
@@ -299,6 +300,7 @@ class abstractDetails(QFrame):
             if kwargs:
                 w = ASSOCIATION[attr][3](*args, **kwargs)
             else:
+                print(attr)
                 w = ASSOCIATION[attr][3](*args)
 
             self.widgets[attr] = (w, label)

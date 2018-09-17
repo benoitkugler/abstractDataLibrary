@@ -327,7 +327,7 @@ class abstractRequetesSQL():
 
     @staticmethod
     def get_users():
-        return MonoExecutant(("SELECT * FROM users",))
+        return MonoExecutant(("SELECT * FROM users", ()))
 
     @classmethod
     def check_mdp_user(cls,id_user, mdp):
