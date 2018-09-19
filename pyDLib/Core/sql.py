@@ -138,8 +138,8 @@ class LocalConnexion(abstractConnexion):
     connexion : sqlite3.Connection
     SQL = sqlite3
 
-    REGEXP_TABLE = re.compile("(INSERT INTO|UPDATE)\s*(\w*)",flags=re.I)
-    REGEXP_ID = re.compile("id =\s*(\w*)",flags=re.I)
+    REGEXP_TABLE = re.compile(r"(INSERT INTO|UPDATE)\s*(\w*)", flags=re.I)
+    REGEXP_ID = re.compile(r"id =\s*(\w*)", flags=re.I)
 
     def __init__(self,autocommit=False):
         DSN = os.path.join(self.PATH,"db.sqlite")
@@ -149,7 +149,7 @@ class LocalConnexion(abstractConnexion):
         pass
 
     def _execute_one(self,cursor,req : str,args):
-        if re.search("RETURNING \*",req,flags=re.I):
+        if re.search(r"RETURNING \*", req, flags=re.I):
             req = req.replace("RETURNING *","")
             super()._execute_one(cursor,req,args) # no intersting result so far
             match = self.REGEXP_TABLE.search(req)

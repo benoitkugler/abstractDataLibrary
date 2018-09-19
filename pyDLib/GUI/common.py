@@ -300,7 +300,6 @@ class abstractDetails(QFrame):
             if kwargs:
                 w = ASSOCIATION[attr][3](*args, **kwargs)
             else:
-                print(attr)
                 w = ASSOCIATION[attr][3](*args)
 
             self.widgets[attr] = (w, label)

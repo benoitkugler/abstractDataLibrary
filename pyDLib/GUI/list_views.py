@@ -27,6 +27,8 @@ class Renderer():
     @staticmethod
     def headerData(section, orientation, role, attribut, sort_state):
         if orientation == Qt.Horizontal:
+            if attribut is None:
+                return
             if role == Qt.DisplayRole:
                 return formats.ASSOCIATION[attribut][0]
             elif role == Qt.DecorationRole:
@@ -45,6 +47,8 @@ class Renderer():
     @staticmethod
     def data(attribut, value, info, role):
         if role == Qt.DisplayRole:
+            if attribut is None:
+                return formats.abstractRender.default(value)
             fonction_aff = formats.ASSOCIATION[attribut][2]
             return fonction_aff(value)
         elif role == Qt.TextAlignmentRole:
@@ -638,6 +642,9 @@ class PseudoAccesCategorie(dict):
         super().__init__(nom=f)
         self.Id = f
 
+    def __str__(self):
+        return self.Id
+
 
 class abstractMutableList(QFrame):
     """Provides a view and acces to add or remove and element."""
@@ -647,6 +654,10 @@ class abstractMutableList(QFrame):
     LIST_PLACEHOLDER = "No items."
     LIST_HEADER = []
     BOUTON = None
+
+    @staticmethod
+    def from_list(liste):
+        return sortableListe(PseudoAccesCategorie(i) for i in liste)
 
     def __init__(self, collection, is_editable, *button_args):
         super().__init__()
@@ -661,12 +672,13 @@ class abstractMutableList(QFrame):
 
         layout = QVBoxLayout(self)
         layout.addWidget(self.view)
-        layout.addWidget(add_button)
+        if is_editable:
+            layout.addWidget(add_button)
 
     def _create_view(self, collection, is_editable):
         v = SimpleList(collection, self.LIST_HEADER)
         v.PLACEHOLDER = self.LIST_PLACEHOLDER
-        v.VERTICAL_HEADER_VISIBLE = is_editable
+        v.verticalHeader().setVisible(is_editable)
         return v
 
     def on_add(self, item):
