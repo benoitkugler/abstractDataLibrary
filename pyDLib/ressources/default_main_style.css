@@ -51,7 +51,7 @@ QStatusBar {
 
 
 
-QLabel#loggin-main-title {
+QLabel#login-main-title {
     font-size: 36pt;
     font-weight: bold;
     color: #489FD0;
@@ -66,7 +66,7 @@ QFrame#user-profile {
     padding: 5px;
 }
 
-QFrame#user-profile:hover {
+QFrame#user-profile[follow-mouse=true]:hover {
     background: #50D2FF;
     border: 2px transparent;
     background-clip: content;
