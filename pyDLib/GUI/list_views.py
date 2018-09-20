@@ -495,6 +495,8 @@ class abstractAccesId(fenetres.Window):
 
     SEARCH_PLACEHOLDER = f"Please type at least {MIN_CHAR_SEARCH} characters..."
 
+    return_value: data_model.abstractAcces
+
     def __init__(self, search_hook):
         super().__init__(self.WINDOW_TITLE)
         self.return_value = None

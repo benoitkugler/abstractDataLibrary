@@ -151,7 +151,10 @@ class abstractDictTable(dict):
             return groups.Collection(Ac(base, i) for i in self)
 
         if len(pattern) >= MIN_CHAR_SEARCH:  # Needed chars.
-            regexp = re.compile(pattern, flags=re.I)
+            try:
+                regexp = re.compile(pattern, flags=re.I)
+            except re.error:
+                return groups.Collection()
             to_string_hook = to_string_hook or self._record_to_string
             search = regexp.search
             return groups.Collection(Ac(base, i) for i, p in self.items() if search(to_string_hook(p)))
