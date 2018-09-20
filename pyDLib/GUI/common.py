@@ -304,17 +304,20 @@ class abstractDetails(QFrame):
 
             self.widgets[attr] = (w, label)
 
+    def _set_field(self, layout, field):
+        w, label = self.widgets[field]
+        if label:
+            layout.addRow(label, w)
+        else:
+            layout.addRow(w)
+
     def set_widgets_champs(self):
         if self.no_layout:
             return
         self.layout_champs = QFormLayout()
         self.layout_champs.setVerticalSpacing(15)
         for attr in self.champs:
-            w, label = self.widgets[attr]
-            if label:
-                self.layout_champs.addRow(label, w)
-            else:
-                self.layout_champs.addRow(w)
+            self._set_field(self.layout_champs, attr)
 
     def _update(self):
         for attr, (w, _) in self.widgets.items():
