@@ -657,7 +657,7 @@ class abstractMutableList(QFrame):
 
     @staticmethod
     def from_list(liste):
-        return sortableListe(PseudoAccesCategorie(i) for i in liste)
+        return sortableListe(PseudoAccesCategorie(i) for i in (liste or ()))
 
     def __init__(self, collection, is_editable, *button_args):
         super().__init__()

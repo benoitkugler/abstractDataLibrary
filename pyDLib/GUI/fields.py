@@ -86,6 +86,14 @@ class Tels(list_views.abstractMutableList):
         collection = self.from_list(collection)
         super().__init__(collection, is_editable)
 
+    def set_data(self, collection):
+        collection = self.from_list(collection)
+        super(Tels, self).set_data(collection)
+
+    def get_data(self):
+        col = super(Tels, self).get_data()
+        return [tel.Id for tel in col]
+
 
 class Duree(QLabel):
     """Display the numbers of day between two date widgets.
@@ -159,7 +167,7 @@ class abstractEnumEditable(QComboBox):
 
 
 class DepartementFixe(abstractEnum):
-    VALEUR_TO_LABEL = formats.DEPARTEMENTS
+    VALUE_TO_LABEL = formats.DEPARTEMENTS
     DEFAULT_VALUE = "00"
 
 
@@ -169,7 +177,7 @@ class DepartementEditable(abstractEnumEditable):
 
 
 class SexeFixe(abstractEnum):
-    VALEUR_TO_LABEL = formats.SEXES
+    VALUE_TO_LABEL = formats.SEXES
     DEFAULT_VALUE = "F"
 
 
@@ -179,7 +187,7 @@ class SexeEditable(abstractEnumEditable):
 
 
 class ModePaiementFixe(abstractEnum):
-    VALEUR_TO_LABEL = formats.MODE_PAIEMENT
+    VALUE_TO_LABEL = formats.MODE_PAIEMENT
     DEFAULT_VALUE = "cheque"
 
 
@@ -191,6 +199,12 @@ class ModePaiementEditable(abstractEnumEditable):
 
 class abstractSimpleField(QLabel):
     FONCTION_AFF = None
+    TOOLTIP = None
+
+    def __init__(self, *args, **kwargs):
+        super(abstractSimpleField, self).__init__(*args, **kwargs)
+        if self.TOOLTIP:
+            self.setToolTip(self.TOOLTIP)
 
     def set_data(self, value):
         self.value = value

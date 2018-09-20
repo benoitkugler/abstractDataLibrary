@@ -12,7 +12,8 @@ from PyQt5.QtWidgets import (QMainWindow, QToolBar, QStackedWidget, QTabWidget, 
 from . import PARAMETERS, AppIcon, Icons
 from . import common, load_options, login
 from .fenetres import Window, WarningBox
-from ..Core import StructureError, ConnexionError, load_changelog, controller, load_credences, CREDENCES
+from .. import Core
+from ..Core import StructureError, ConnexionError, load_changelog, controller, load_credences
 
 
 def init_version(v):
@@ -241,10 +242,10 @@ class UpdateConfiguration(Window):
         L'<b>adresse</b> (URL) est celle du serveur où est stocké le fichier de 'crédences'.<br/>
         Les <b>fichiers de configuration</b> influent sur le style de l'interface du logiciel, ainsi que la présentation des documents émis.
         """
-        infos = "Adresse de chargement de la base : {} <br/>".format(CREDENCES["FILES_URL"]["db"])
-        infos += "Nom de la base en accès direct : {} <br/>".format(CREDENCES["DB"]['name'])
+        infos = "Adresse de chargement de la base : {} <br/>".format(Core.CREDENCES["FILES_URL"]["db"])
+        infos += "Nom de la base en accès direct : {} <br/>".format(Core.CREDENCES["DB"]['name'])
         try:
-            url = CREDENCES["FILES_URL"]["credences"]
+            url = Core.CREDENCES["FILES_URL"]["credences"]
         except (KeyError,TypeError):
             logging.exception("Credences download url not found !")
             url = ""

@@ -87,7 +87,7 @@ class Confirmation(MultiChoiceDialog):
     TITLE = "Confirmation"
 
     def __init__(self, message, yes="Confirmer", no="Annuler",**kwargs):
-        super(Confirmation, self).__init__(message,yes,no,*kwargs)
+        super(Confirmation, self).__init__(message, yes, no, **kwargs)
 
 
 
