@@ -298,7 +298,7 @@ class abstractInterInterfaces:
             with open("local/init", "rb") as f:
                 s = f.read()
                 s = security.protege_data(s, False)
-                self.autolog = json.loads(s)["autolog"]
+                self.autolog = json.loads(s).get("autolog", {})
         except FileNotFoundError:
             return
 
