@@ -280,8 +280,9 @@ class abstractBase:
         """Return a dictionnary of current tables"""
         return {table_name: getattr(self, table_name).dumps() for table_name in self.TABLES}
 
-    def _get_table(self, nom, data):
-        return self.TABLES[nom].from_data(data)
+    @classmethod
+    def _get_table(cls, nom, data):
+        return cls.TABLES[nom].from_data(data)
 
     def load_partiel(self, **kwargs):
         for i, v in kwargs.items():
