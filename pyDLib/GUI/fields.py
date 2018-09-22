@@ -201,6 +201,8 @@ class abstractSimpleField(QLabel):
     FONCTION_AFF = None
     TOOLTIP = None
 
+    data_changed = pyqtSignal()  # dummy signal
+
     def __init__(self, *args, **kwargs):
         super(abstractSimpleField, self).__init__(*args, **kwargs)
         if self.TOOLTIP:
