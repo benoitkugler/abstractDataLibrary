@@ -201,10 +201,12 @@ class abstractInterInterfaces:
     """Modules containing all interfaces required"""
 
     base: data_model.abstractBase
+    autolog: dict
 
     def __init__(self):
         self.base = None
         self.users = {}
+        self.autolog = {}
         self.modules = {}  # Modules to load
 
         self.interfaces = {}
