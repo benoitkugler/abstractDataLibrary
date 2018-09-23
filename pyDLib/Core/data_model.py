@@ -39,14 +39,14 @@ class abstractAcces:
         if item in self.FIELDS_OPTIONS:
             if "options" in self.modifications:
                 return self.modifications["options"][item]
-            elif self.Id:
+            elif self.Id is not None:
                 return getattr(self.base, self.TABLE)[self.Id].get("options", {}).get(item, None)
             else:
                 return None
         else:
             if item in self.modifications:
                 return self.modifications[item]
-            elif self.Id:
+            elif self.Id is not None:
                 return getattr(self.base, self.TABLE)[self.Id].get(item, None)
             else:
                 return None
