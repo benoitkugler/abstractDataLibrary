@@ -7,7 +7,7 @@ import os
 from PyQt5.QtCore import Qt, QSize, pyqtSignal
 from PyQt5.QtGui import QIcon, QKeySequence
 from PyQt5.QtWidgets import (QMainWindow, QToolBar, QStackedWidget, QTabWidget, qApp, QShortcut,
-                             QLabel, QCheckBox, QPushButton, QFormLayout, QLineEdit)
+                             QLabel, QCheckBox, QPushButton, QFormLayout, QLineEdit, QScrollArea)
 
 from . import PARAMETERS, AppIcon, Icons
 from . import common, load_options, login
@@ -223,12 +223,17 @@ class Application(QMainWindow):
         self._quit()
 
     def show_version(self):
-        f = Window("Version")
-        label = "<p>Version {} </p>".format(APP_VERSION)
+        f = Window("Notes de version")
+        label = f"<h2> Version {APP_VERSION} </h2>"
         label += load_changelog()
-        l = QLabel(label)
-        l.setTextFormat(Qt.RichText)
-        f.add_widget(l)
+        notes = QLabel(label)
+        notes.setTextFormat(Qt.RichText)
+        scroll = QScrollArea()
+        scroll.setStyleSheet("border: none;")
+        scroll.setWidget(notes)
+        scroll.setMinimumWidth(600)
+        scroll.setMinimumHeight(550)
+        f.add_widget(scroll)
         f.exec_()
 
 
