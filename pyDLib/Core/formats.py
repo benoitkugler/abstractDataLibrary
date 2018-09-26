@@ -10,12 +10,20 @@ from collections import defaultdict
 ### ---------- JSON support -------------- ###
 class JsonEncoder(json.JSONEncoder):
     """Add python types encoding. Customs types should dumps to python types first."""
-    def default(self, o):
+
+    @staticmethod
+    def convert(o):
         if type(o) is datetime.date:
             return {"__date__": True, "year": o.year, "month": o.month, "day": o.day}
         elif type(o) is datetime.datetime:
             return {"__datetime__": True, "year": o.year, "month": o.month, "day": o.day, "hour": o.hour,
                     "minute": o.minute, "second": o.second}
+        return
+
+    def default(self, o):
+        converted = self.convert(o)
+        if converted is not None:
+            return converted
         return super().default(o)
 
 

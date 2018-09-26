@@ -28,6 +28,7 @@ class abstractDialog(QMessageBox):
 class FatalError(abstractDialog):
 
     ICON = QMessageBox.Critical
+    TITLE = "Erreur"
 
     def __init__(self, text,details):
         abstractDialog.__init__(self,text=text,details=details)
@@ -38,6 +39,7 @@ class FatalError(abstractDialog):
 class WarningBox(abstractDialog):
 
     ICON = QMessageBox.Warning
+    TITLE = "Avertissement"
 
     def __init__(self, message):
         super(WarningBox, self).__init__(text=message)

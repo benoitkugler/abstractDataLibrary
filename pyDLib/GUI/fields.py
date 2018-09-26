@@ -160,6 +160,7 @@ class abstractEnumEditable(QComboBox):
     def set_data(self, value):
         value = value or self.DEFAULT_VALUE
         self.setCurrentIndex(self.places[value])
+        self.data_changed.emit(self.get_data())
 
     def get_data(self):
         return self.currentData()
@@ -440,8 +441,8 @@ class Texte(QPlainTextEdit):
 
     def __init__(self, text, is_editable, placeholder="Informations complémentaires"):
         super().__init__(text)
-        self.setSizeAdjustPolicy(QPlainTextEdit.AdjustToContentsOnFirstShow)
-        self.setMinimumHeight(20)
+        self.setSizeAdjustPolicy(QPlainTextEdit.AdjustToContents)
+        self.setMinimumHeight(30)
         self.setPlaceholderText(placeholder)
         self.setReadOnly(not is_editable)
         self.textChanged.connect(lambda: self.data_changed.emit(self.toPlainText()))
