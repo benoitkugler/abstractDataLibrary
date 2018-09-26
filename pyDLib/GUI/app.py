@@ -1,6 +1,7 @@
 """Defines main application object.
 Starting of the programm should be controlled by a launcher script
 """
+import json
 import logging
 import os
 
@@ -249,6 +250,8 @@ class UpdateConfiguration(Window):
         """
         infos = "Adresse de chargement de la base : {} <br/>".format(Core.CREDENCES["FILES_URL"]["db"])
         infos += "Nom de la base en accès direct : {} <br/>".format(Core.CREDENCES["DB"]['name'])
+        details = json.dumps(Core.CREDENCES, indent=2).replace("\n", "<br/>")
+        infos += f"Détails : {details}"
         try:
             url = Core.CREDENCES["FILES_URL"]["credences"]
         except (KeyError,TypeError):

@@ -19,6 +19,8 @@ CREDENCES = None
 
 FICHIER_CREDENCES = "credences/credences"
 FICHIER_CREDENCES_DEV = "credences/credences_dev"
+FICHIER_CREDENCES_LOCAL_DEV = "credences/credences_local_dev"
+
 
 
 def id_from_name(s):
@@ -28,7 +30,7 @@ def id_from_name(s):
 
 def load_credences(dev=False):
     global CREDENCES
-    path = dev and FICHIER_CREDENCES_DEV or FICHIER_CREDENCES
+    path = {True: FICHIER_CREDENCES_DEV, False: FICHIER_CREDENCES, "local_dev": FICHIER_CREDENCES_LOCAL_DEV}[dev]
     try:
         with open(path, 'rb') as f:
             encrypt = f.read()
