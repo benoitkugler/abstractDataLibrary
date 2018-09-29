@@ -10,8 +10,8 @@ from . import init_all, StructureError
 class Callbacks:
 
     def __getattr__(self, key):
-        def f(*args):
-            logging.error(f"No callback with name {key} and args {args} registered !")
+        def f(*args, **kwargs):
+            logging.error(f"No callback with name {key}, args {args} and kwargs {kwargs} registered !")
 
         return f
 

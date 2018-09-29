@@ -49,8 +49,8 @@ def date_decoder(dic):
 
 ### ------ TYPES ----- ###
 
-DATE_DEFAULT = datetime.date(1000, 1, 1)
-DATETIME_DEFAULT = datetime.datetime(1000, 1, 1)
+DATE_DEFAULT = datetime.date(1800, 1, 1)
+DATETIME_DEFAULT = datetime.datetime(1800, 1, 1)
 
 REGIONS = {
     'Inconnue': ['00'],

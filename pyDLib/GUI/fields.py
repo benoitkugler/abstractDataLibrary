@@ -158,9 +158,11 @@ class abstractEnumEditable(QComboBox):
                 self.insertSeparator(self.count())
 
     def set_data(self, value):
-        value = value or self.DEFAULT_VALUE
-        self.setCurrentIndex(self.places[value])
-        self.data_changed.emit(self.get_data())
+        if value is None:
+            self.setCurrentIndex(-1)
+        else:
+            self.setCurrentIndex(self.places[value])
+            self.data_changed.emit(self.get_data())
 
     def get_data(self):
         return self.currentData()
@@ -370,7 +372,17 @@ class DateEditable(QFrame):
         j.valueChanged.connect(lambda v: self.data_changed.emit(self.get_data()))
         m.valueChanged.connect(lambda v: self.data_changed.emit(self.get_data()))
         a.valueChanged.connect(lambda v: self.data_changed.emit(self.get_data()))
+        a.editingFinished.connect(self.on_editing)
         self.ws = (a, m, j)
+
+    def on_editing(self):
+        current_date = self.get_data()
+        if current_date.year < 100:
+            self.ws[0].setValue(2000 + current_date.year)
+            self.ws[0].setStyleSheet("color : orange;")
+        else:
+            self.ws[0].setStyleSheet("")
+
 
     def get_data(self):
         d = [self.ws[0].value(), self.ws[1].value(), self.ws[2].value()]
@@ -385,7 +397,7 @@ class DateEditable(QFrame):
         self.ws[0].setValue(d[0])
         self.ws[1].setValue(d[1])
         self.ws[2].setValue(d[2])
-
+        self.on_editing()
 
 class MontantEditable(QFrame):
 
