@@ -115,9 +115,7 @@ class Duree(QLabel):
         self.setText(str(jours) + (jours >= 2 and " jours" or " jour"))
 
 
-
-
-
+# -------------- Enumerations vizualisation --------------
 class abstractEnum(QLabel):
 
     VALUE_TO_LABEL = None
@@ -133,6 +131,7 @@ class abstractEnum(QLabel):
 
     def get_data(self):
         return self.value
+
 
 class abstractEnumEditable(QComboBox):
     data_changed = pyqtSignal(object)
@@ -168,7 +167,7 @@ class abstractEnumEditable(QComboBox):
         return self.currentData()
 
 
-
+# -------------------- Commons types --------------------
 class DepartementFixe(abstractEnum):
     VALUE_TO_LABEL = formats.DEPARTEMENTS
     DEFAULT_VALUE = "00"
@@ -199,7 +198,7 @@ class ModePaiementEditable(abstractEnumEditable):
     DEFAULT_VALUE = "cheque"
 
 
-
+# ------------- Simple string-like field -------------
 class abstractSimpleField(QLabel):
     FONCTION_AFF = None
     TOOLTIP = None
@@ -244,7 +243,7 @@ class DateHeureFixe(abstractSimpleField):
     FONCTION_AFF = staticmethod(formats.abstractRender.dateheure)
 
 
-
+# --------------- Numeric fields ---------------
 class abstractEntierEditable(QSpinBox):
     UNITE = ""
     MAX = None
@@ -341,6 +340,46 @@ class DefaultEditable(QLineEdit):
         return self.text()
 
 
+class OptionnalTextEditable(QFrame):
+    """QCheckbox + QLineEdit"""
+
+    data_changed = pyqtSignal(object)
+
+    def __init__(self, parent=None):
+        super(OptionnalTextEditable, self).__init__(parent=parent)
+        self.active = QCheckBox()
+        self.text = QLineEdit()
+
+        self.active.clicked.connect(self.on_click)
+        self.text.textChanged.connect(self.on_text_changed)
+
+        layout = QHBoxLayout(self)
+        layout.addWidget(self.active)
+        layout.addWidget(self.text)
+
+    def on_click(self):
+        self.text.setEnabled(self.active.isChecked())
+        self.data_changed.emit(self.get_data())
+
+    def on_text_changed(self, text):
+        is_active = bool(text.strip())
+        self.active.setChecked(is_active)
+        self.text.setEnabled(is_active)
+        self.data_changed.emit(self.get_data())
+
+    def get_data(self):
+        text = self.text.text().strip()
+        active = self.active.isChecked() and bool(text)
+        return text if active else None
+
+    def set_data(self, text: str):
+        text = text or ""
+        is_active = bool(text.strip())
+        self.active.setChecked(is_active)
+        self.text.setEnabled(is_active)
+        self.text.setText(text)
+        self.data_changed.emit(self.get_data())
+
 
 class DateEditable(QFrame):
 
@@ -398,6 +437,7 @@ class DateEditable(QFrame):
         self.ws[1].setValue(d[1])
         self.ws[2].setValue(d[2])
         self.on_editing()
+
 
 class MontantEditable(QFrame):
 
@@ -524,6 +564,10 @@ def DateHeure(value, is_editable):
     w = DateHeureFixe()
     w.set_data(value)
     return w
+
+
+def OptionnalText(value, is_editable):
+    return _get_widget(is_editable and OptionnalTextEditable or DefaultFixe, value)
 
 """Correspondance field -> widget (callable)"""
 TYPES_WIDGETS = defaultdict(
