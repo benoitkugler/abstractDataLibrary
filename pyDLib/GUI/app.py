@@ -5,7 +5,7 @@ import json
 import logging
 import os
 
-from PyQt5.QtCore import Qt, QSize, pyqtSignal
+from PyQt5.QtCore import Qt, QSize, pyqtSignal, QPoint
 from PyQt5.QtGui import QIcon, QKeySequence
 from PyQt5.QtWidgets import (QMainWindow, QToolBar, QStackedWidget, QTabWidget, qApp, QShortcut,
                              QLabel, QCheckBox, QPushButton, QFormLayout, QLineEdit, QScrollArea)
@@ -26,6 +26,7 @@ class abstractMainTabs(QTabWidget):
     """Modules container"""
 
     interface_changed = pyqtSignal(controller.abstractInterface)
+    popup_asked = pyqtSignal(str)
 
     Id_to_Classes = {}
     """Dict. { module_name : (GUI_module_class , label) }"""
@@ -46,6 +47,7 @@ class abstractMainTabs(QTabWidget):
             classe, label = self.Id_to_Classes[module_name]
             self._index_interfaces.append(module_name)
             onglet = classe(status_bar, i)
+            onglet.popup_asked.connect(self.popup_asked.emit)
             self.addTab(onglet, label)
 
     def get_interface(self, index):
@@ -106,6 +108,7 @@ class abstractToolBar(QToolBar):
 
 class Application(QMainWindow):
     theory_main: controller.abstractInterInterfaces
+    current_popup: common.Popup
 
     WINDOW_TITLE = "abstract Data App"
 
@@ -116,6 +119,7 @@ class Application(QMainWindow):
         super().__init__()
         self.theory_main = theory_main
         self.no_load = False
+        self.current_popup = None
 
         self._initUI()
         self._init_shortcuts()
@@ -158,6 +162,7 @@ class Application(QMainWindow):
 
         self.tabs = self.TABS_CLASS(self.theory_main, self.statusBar())
         self.tabs.interface_changed.connect(tb.set_interface)
+        self.tabs.popup_asked.connect(self.show_popup)
 
         tb.set_interface(self.theory_main.interfaces[self.tabs._index_interfaces[0]])
 
@@ -165,6 +170,31 @@ class Application(QMainWindow):
         self.centralWidget().setCurrentIndex(1)
         if maximized:
             self.showMaximized()
+
+    def show_popup(self, text):
+        if self.current_popup:
+            self.current_popup.hide()
+        if text:
+            self.current_popup = common.Popup(self, text)
+            self.current_popup.show()
+            self._move_popup()
+
+    def _move_popup(self):
+        if self.current_popup is None:
+            return
+        p_window = QPoint(self.size().width(), self.size().height())
+        p_popup = QPoint(self.current_popup.size().width(), self.current_popup.size().height())
+        tb_w = self.toolbar.size().width() + 5
+        p = self.mapToGlobal(p_window - p_popup - QPoint(tb_w, 0))
+        self.current_popup.move(p)
+
+    def resizeEvent(self, event):
+        self._move_popup()
+        super().resizeEvent(event)
+
+    def moveEvent(self, event):
+        self._move_popup()
+        super().moveEvent(event)
 
     def set_toolbar(self, tb):
         if self.toolbar:

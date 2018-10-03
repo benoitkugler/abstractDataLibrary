@@ -3,9 +3,10 @@
 from os.path import expanduser
 
 from PyQt5.QtCore import *
+from PyQt5.QtGui import QPainter, QBrush, QPen
 from PyQt5.QtWidgets import (QFrame, QLabel, QPushButton, QLineEdit, QFormLayout, QFileDialog, QCheckBox,
                              QHBoxLayout, QVBoxLayout, QGridLayout, QProgressBar,
-                             qApp)
+                             qApp, QWidget, QPlainTextEdit)
 
 from . import clear_layout
 from .fenetres import Window
@@ -228,6 +229,39 @@ class abstractFilter(QFrame):
         for c in self.checkboxes:
             c.setChecked(True)
 
+
+# ------------------------- Popup ------------------------- #
+
+class Popup(QWidget):
+
+    def __init__(self, parent, text):
+        super(Popup, self).__init__(parent=parent)
+        self.setWindowFlags(self.windowFlags() | Qt.WindowStaysOnTopHint | Qt.FramelessWindowHint | Qt.ToolTip)
+        self.setAttribute(Qt.WA_TranslucentBackground)
+        layout = QVBoxLayout(self)
+        label = QPlainTextEdit(text)
+        label.setReadOnly(True)
+        layout.addWidget(label)
+
+    def paintEvent(self, paintEvent):
+        painter = QPainter(self)
+        painter.setRenderHint(QPainter.Antialiasing)
+
+        roundedRectDimensions = QRect()
+        roundedRectDimensions.setX(self.rect().x() + 2)
+        roundedRectDimensions.setY(self.rect().y() + 2)
+        roundedRectDimensions.setWidth(self.rect().width() - 4)
+        roundedRectDimensions.setHeight(self.rect().height() - 4)
+
+        painter.setBrush(QBrush(Qt.lightGray))
+        pen = QPen()
+        pen.setColor(Qt.gray)
+        pen.setWidth(3)
+        painter.setPen(pen)
+
+        painter.drawRoundedRect(roundedRectDimensions, 15, 15)
+        painter.setPen(Qt.NoPen)
+        painter.setBrush(QBrush(Qt.gray))
 
 
 # ------------ Detailled modification widget---------------- #

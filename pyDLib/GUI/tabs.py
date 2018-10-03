@@ -1,5 +1,6 @@
 import logging
 
+from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtWidgets import QFrame, QStatusBar
 
 from pyDLib.GUI import fenetres
@@ -7,6 +8,9 @@ from ..Core import controller
 
 
 class abstractModule(QFrame):
+    popup_asked = pyqtSignal(str)
+    """Asks for bottom right popup displaying given string"""
+
     status_bar: QStatusBar
     interface: controller.abstractInterface
 
