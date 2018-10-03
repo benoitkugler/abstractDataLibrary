@@ -62,7 +62,6 @@ class NouveauTelephone(abstractNewButton):
         line_layout.setStretch(0, 3)
         line_layout.setStretch(1, 1)
 
-
     def on_add(self):
         num = self.entree.text()
         if self.IS_TELEPHONE(num):
@@ -85,6 +84,10 @@ class Tels(list_views.abstractMutableList):
     def __init__(self, collection: list, is_editable):
         collection = self.from_list(collection)
         super().__init__(collection, is_editable)
+
+    def on_add(self, item):
+        """Convert to pseuso acces"""
+        super(Tels, self).on_add(list_views.PseudoAccesCategorie(item))
 
     def set_data(self, collection):
         collection = self.from_list(collection)
