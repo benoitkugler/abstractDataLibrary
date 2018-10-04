@@ -631,6 +631,7 @@ class delegateAttributs(QStyledItemDelegate):
 
     size_hint_: tuple
 
+
     def __init__(self, parent):
         QStyledItemDelegate.__init__(self, parent)
         self.size_hint_ = None
@@ -640,6 +641,7 @@ class delegateAttributs(QStyledItemDelegate):
     def paint_filling_rect(option, painter, proportion):
         rect = option.rect
         painter.save()
+        proportion = min(proportion, 100)
         color = QColor(0, 255 * proportion / 100, 100 - proportion)
         painter.setPen(QPen(color, 0.5, Qt.SolidLine, Qt.RoundCap, Qt.RoundJoin))
         painter.setBackgroundMode(Qt.OpaqueMode)
