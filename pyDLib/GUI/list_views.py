@@ -327,6 +327,9 @@ class abstractList(QTableView):
         if self.DELEGATE_CLASS is not None:
             self._setup_delegate()
 
+        self.setContextMenuPolicy(Qt.CustomContextMenu)
+        self.customContextMenuRequested.connect(self.on_left_click)
+
     def _setup_delegate(self):
         """Add resize behavior on edit"""
         delegate = self.DELEGATE_CLASS(self)
@@ -357,6 +360,9 @@ class abstractList(QTableView):
         self.resizeColumnToContents(i)
 
     def on_click(self, index):
+        pass
+
+    def on_left_click(self, pos):
         pass
 
     def on_double_click(self, index):
