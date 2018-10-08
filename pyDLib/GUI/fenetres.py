@@ -47,6 +47,8 @@ class WarningBox(abstractDialog):
 
 
 class MultiChoiceDialog(abstractDialog):
+    ICON = QMessageBox.Question
+    TITLE = "Choix"
 
     def __init__(self,message,yes_label,no_label,other_label=None,action_button=None,details=""):
         super(MultiChoiceDialog, self).__init__(text=message,details=details)
@@ -115,3 +117,11 @@ class Window(QDialog):
         else:
             layout = QVBoxLayout(self)
             layout.addWidget(w)
+
+    def add_layout(self, l):
+        """Convenience function"""
+        if self.layout():
+            self.layout().addLayout(l)
+        else:
+            layout = QVBoxLayout(self)
+            layout.addLayout(l)

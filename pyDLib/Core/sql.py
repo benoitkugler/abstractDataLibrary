@@ -37,7 +37,7 @@ def init_module(remote_credences=None,local_path=None):
         abstractRequetesSQL.setup_marks("sqlite3")
     else:
         raise ValueError("Sql module should be init with one of remote or local mode !")
-    logging.info("Sql module initialized.")
+    logging.info(f"Sql module initialized with {MonoExecutant.ConnectionClass.__name__}")
 
 
 class MonoExecutant(tuple):

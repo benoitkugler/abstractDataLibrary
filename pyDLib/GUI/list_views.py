@@ -376,6 +376,7 @@ class abstractList(QTableView):
         """Intented for main list, which should use interface search"""
         raise NotImplementedError
 
+
 class MultiSelectList(abstractList):
     """Add data_changed signal, and get_data, set_data methods"""
 
@@ -477,6 +478,10 @@ class abstractMainList(abstractList):
     def set_data(self, acces, attribut, value):
         raise NotImplementedError
 
+    def select_by_id(self, Id):
+        row_index = self.get_collection().index_from_id(Id)
+        self.selectRow(row_index)
+        self.on_click(self.model().index(row_index, 0))
 
 
 

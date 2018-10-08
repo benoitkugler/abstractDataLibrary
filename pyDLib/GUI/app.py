@@ -5,7 +5,7 @@ import json
 import logging
 import os
 
-from PyQt5.QtCore import Qt, QSize, pyqtSignal, QPoint
+from PyQt5.QtCore import Qt, QSize, pyqtSignal, QPoint, QTimer
 from PyQt5.QtGui import QIcon, QKeySequence
 from PyQt5.QtWidgets import (QMainWindow, QToolBar, QStackedWidget, QTabWidget, qApp, QShortcut,
                              QLabel, QCheckBox, QPushButton, QFormLayout, QLineEdit, QScrollArea)
@@ -31,7 +31,7 @@ class abstractMainTabs(QTabWidget):
     Id_to_Classes = {}
     """Dict. { module_name : (GUI_module_class , label) }"""
 
-    def __init__(self, theory_main, status_bar):
+    def __init__(self, theory_main: controller.abstractInterInterfaces, status_bar):
         super().__init__()
         self.interfaces = theory_main.interfaces
         self.setObjectName("main-tabs")
@@ -44,6 +44,7 @@ class abstractMainTabs(QTabWidget):
 
         for module_name in sorted(self.interfaces.keys()):
             i = self.interfaces[module_name]
+            i.set_callback("grab_focus", lambda m=module_name: self.set_current_interface(m))
             classe, label = self.Id_to_Classes[module_name]
             self._index_interfaces.append(module_name)
             onglet = classe(status_bar, i)
@@ -53,6 +54,9 @@ class abstractMainTabs(QTabWidget):
     def get_interface(self, index):
         return self.interfaces[self._index_interfaces[index]]
 
+    def set_current_interface(self, module_name):
+        index = self._index_interfaces.index(module_name)
+        self.setCurrentIndex(index)
 
 class abstractToolBar(QToolBar):
     """Main tool bar, constiting in two parts :
@@ -176,6 +180,7 @@ class Application(QMainWindow):
             self.current_popup.hide()
         if text:
             self.current_popup = common.Popup(self, text)
+            QTimer.singleShot(2000, self.current_popup.hide)
             self.current_popup.show()
             self._move_popup()
 

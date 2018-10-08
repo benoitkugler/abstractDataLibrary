@@ -2,6 +2,7 @@
 import json
 import logging
 import os
+from typing import Dict
 
 from . import data_model, groups, formats, sql, threads, security
 from . import init_all, StructureError
@@ -37,7 +38,7 @@ class abstractInterface:
     collection: groups.Collection
     main: 'abstractInterInterfaces'
 
-    def __init__(self, main, permission):
+    def __init__(self, main: 'abstractInterface', permission):
         """
         Constructeur.
 
@@ -201,7 +202,8 @@ class abstractInterInterfaces:
     """Modules containing all interfaces required"""
 
     base: data_model.abstractBase
-    autolog: dict
+    autolog: Dict
+    interfaces: Dict[str, abstractInterface]
 
     def __init__(self):
         self.base = None
@@ -217,13 +219,13 @@ class abstractInterInterfaces:
 
     def load_preferences(self):
         if not os.path.isfile(self.PATH_PREFERENCES):
-            logging.warning("No preferences file found !")
+            logging.warning(f"No user preferences file found in {os.path.abspath(self.PATH_PREFERENCES)} !")
             return {}
         with open(self.PATH_PREFERENCES, "r", encoding="utf8") as f:
             try:
                 return json.load(f,object_hook=formats.date_decoder)
             except json.JSONDecodeError:
-                logging.exception("Preferences file corrupted !")
+                logging.exception("User preferences file corrupted !")
                 return {}
 
     def update_preferences(self, key, value):
