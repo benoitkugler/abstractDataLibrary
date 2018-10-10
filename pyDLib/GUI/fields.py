@@ -393,14 +393,17 @@ class DateEditable(QFrame):
         layout = QGridLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
         j = QSpinBox()
-        j.setMinimum(0)
+        j.setMinimum(1)
         j.setMaximum(31)
+        j.setToolTip("Jour")
         m = QSpinBox()
-        m.setMinimum(0)
+        m.setMinimum(1)
         m.setMaximum(12)
+        m.setToolTip("Mois")
         a = QSpinBox()
         a.setMinimum(0)
         a.setMaximum(2500)
+        a.setToolTip("Année")
         j.setAlignment(Qt.AlignCenter)
         m.setAlignment(Qt.AlignCenter)
         a.setAlignment(Qt.AlignCenter)
@@ -424,7 +427,6 @@ class DateEditable(QFrame):
             self.ws[0].setStyleSheet("color : orange;")
         else:
             self.ws[0].setStyleSheet("")
-
 
     def get_data(self):
         d = [self.ws[0].value(), self.ws[1].value(), self.ws[2].value()]
