@@ -30,6 +30,12 @@ QPushButton:hover {
                                       stop: 0 #f6f7fa, stop: 1 #1BC0C7);
 }
 
+QPushButton:disabled {
+    color: #343638;
+    background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
+                                      stop: 0 #f6f7fa, stop: 1 grey);
+}
+
 
 
 QScrollBar:horizontal {
