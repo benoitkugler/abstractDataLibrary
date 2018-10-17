@@ -485,7 +485,10 @@ class abstractMainList(abstractList):
         raise NotImplementedError
 
     def select_by_id(self, Id):
-        row_index = self.get_collection().index_from_id(Id)
+        try:
+            row_index = self.get_collection().index_from_id(Id)
+        except ValueError:
+            return
         self.selectRow(row_index)
         self.on_click(self.model().index(row_index, 0))
 

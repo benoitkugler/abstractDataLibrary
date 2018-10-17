@@ -131,6 +131,7 @@ Ligne de titre
 #list-view QHeaderView{
 	background: transparent;
 }
+
 /*
 Element de la ligne de titre
 */
@@ -159,9 +160,11 @@ Click sur un élement de la colonne
 	border: 3px inset grey;
 }
 
+
 #list-view::item:selected {
-	background-color: rgba(20,20,20,40);
+	background-color: #4d5b10;
 }
+
 /*
 Passage de la souris sur une case d'une ligne d'une recherche rapide
 */
