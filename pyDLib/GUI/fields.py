@@ -285,16 +285,18 @@ class EurosEditable(QDoubleSpinBox):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setMaximum(100000)
+        self.setMinimum(-1)
+        self.setSpecialValueText(" ")
         self.setSuffix("€")
         self.valueChanged.connect(self.data_changed.emit)
 
     def set_data(self, somme):
-        somme = somme or 0
+        somme = somme if somme is not None else -1
         self.setValue(somme)
 
     def get_data(self):
-        return self.value()
-
+        v = self.value()
+        return v if v != -1 else None
 
 class BoolEditable(QFrame):
     data_changed = pyqtSignal(bool)
@@ -385,19 +387,18 @@ class OptionnalTextEditable(QFrame):
 
 
 class DateEditable(QFrame):
-
-    data_changed = pyqtSignal(datetime.date)
+    data_changed = pyqtSignal(object)
 
     def __init__(self, parent=None):
         super().__init__(parent)
         layout = QGridLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
         j = QSpinBox()
-        j.setMinimum(1)
+        j.setMinimum(0)
         j.setMaximum(31)
         j.setToolTip("Jour")
         m = QSpinBox()
-        m.setMinimum(1)
+        m.setMinimum(0)
         m.setMaximum(12)
         m.setToolTip("Mois")
         a = QSpinBox()
@@ -422,6 +423,8 @@ class DateEditable(QFrame):
 
     def on_editing(self):
         current_date = self.get_data()
+        if current_date is None:
+            return
         if current_date.year < 100:
             self.ws[0].setValue(2000 + current_date.year)
             self.ws[0].setStyleSheet("color : orange;")
@@ -431,10 +434,11 @@ class DateEditable(QFrame):
     def get_data(self):
         d = [self.ws[0].value(), self.ws[1].value(), self.ws[2].value()]
         try:
-            d = datetime.date(*d)
+            self.setStyleSheet("")
+            return datetime.date(*d)
         except ValueError:
-            d = formats.DATE_DEFAULT
-        return d
+            self.setStyleSheet("color : orange;")
+            return
 
     def set_data(self, d):
         d = d and (d.year, d.month, d.day) or (0, 0, 0)
