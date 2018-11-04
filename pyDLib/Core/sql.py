@@ -184,7 +184,6 @@ class LocalConnexion(abstractConnexion):
 
 
 
-
 class RemoteConnexion(abstractConnexion):
     """Connexion to local PostgreSQL DB"""
 
