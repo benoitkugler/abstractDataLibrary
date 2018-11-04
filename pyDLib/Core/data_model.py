@@ -175,7 +175,6 @@ class abstractDictTable(dict):
         Ac = self.ACCES
         return groups.Collection(Ac(base, i) for i in self if criteria(Ac(base, i)))
 
-
     def to_collection(self,base):
         Ac = self.ACCES
         return groups.Collection(Ac(base, i) for i in self)

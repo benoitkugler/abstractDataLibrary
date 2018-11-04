@@ -1,6 +1,6 @@
 """Common widgets"""
 
-from os.path import expanduser
+import os.path
 
 from PyQt5.QtCore import *
 from PyQt5.QtGui import QPainter, QBrush, QPen
@@ -71,8 +71,10 @@ class ImportFile(QFileDialog):
 class DirectoryAcces(QPushButton):
 
     def __init__(self):
-        self.directory = expanduser("~")
-        self.default = expanduser("~")
+        desktop_path = os.path.join(os.path.expanduser("~"), "Desktop")
+        path = desktop_path if os.path.isdir(desktop_path) else os.path.expanduser("~")
+        self.directory = path
+        self.default = path
         super().__init__(self.directory)
         self.clicked.connect(self.on_click)
 

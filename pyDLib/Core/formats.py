@@ -301,7 +301,6 @@ def _type_string(label):
     """Shortcut for string like fields"""
     return label, abstractSearch.in_string, abstractRender.default, ""
 
-
 def _type_date(label):
     """Shortcut for date like fields"""
     return label, abstractSearch.in_date, abstractRender.date, DATE_DEFAULT
@@ -314,6 +313,13 @@ def _type_bool(label,default=False):
     """Shortcut fot boolean like fields"""
     return label, abstractSearch.nothing, abstractRender.boolen, default
 
+
+def _type_int(label):
+    return label, abstractSearch.in_string, abstractRender.default, 0
+
+
+def _type_euros(label):
+    return label, abstractSearch.in_string, abstractRender.euros, 0
 
 """
 Formats definitions.
