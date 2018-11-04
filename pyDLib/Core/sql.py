@@ -74,8 +74,15 @@ class abstractConnexion:
     SQL = None
     """SQL module to use"""
 
+    NAME = None
+    """Base name"""
 
-    def __init__(self, DSN,autocommit,**kwargs):
+    DEV_MODE = False
+    """Default value for dev base acces"""
+
+    def __init__(self, DSN, autocommit, dev=None, **kwargs):
+        DSN = DSN.format(self._get_base_name(dev))
+
         try:
             connexion = self.SQL.connect(DSN,**kwargs)
         except self.SQL.Error as e:
@@ -83,6 +90,13 @@ class abstractConnexion:
         else:
             self.connexion = connexion
             self.set_autocommit(autocommit)
+
+    def _get_base_name(self, dev):
+        # If dev is asked, use basename_dev
+        if dev is None:
+            dev = self.DEV_MODE
+        name = dev and self.NAME.split("_")[0] + "_dev" or self.NAME
+        return name
 
     def set_autocommit(self,autocommit):
         self.connexion.autocommit = autocommit
@@ -135,15 +149,17 @@ class LocalConnexion(abstractConnexion):
 
     PATH = None
 
+    NAME = "db"
+
     connexion : sqlite3.Connection
     SQL = sqlite3
 
     REGEXP_TABLE = re.compile(r"(INSERT INTO|UPDATE)\s*(\w*)", flags=re.I)
     REGEXP_ID = re.compile(r"id =\s*(\w*)", flags=re.I)
 
-    def __init__(self,autocommit=False):
-        DSN = os.path.join(self.PATH,"db.sqlite")
-        super().__init__(DSN,autocommit,detect_types=self.SQL.PARSE_DECLTYPES)
+    def __init__(self, autocommit=False, dev=None):
+        DSN = os.path.join(self.PATH, "{}.sqlite")
+        super().__init__(DSN, autocommit, dev, detect_types=self.SQL.PARSE_DECLTYPES)
 
     def set_autocommit(self,autocommit):
         pass
@@ -162,7 +178,6 @@ class LocalConnexion(abstractConnexion):
             return cursor.fetchall()
         return super(LocalConnexion, self)._execute_one(cursor,req,args)
 
-
     def cursor(self):
         self.connexion.row_factory = sqlite3.Row
         return self.connexion.cursor()
@@ -180,11 +195,9 @@ class RemoteConnexion(abstractConnexion):
     PASSWORD = ""
     NAME = ""
 
-    def __init__(self, autocommit=False, dev=False):
-        # If dev is asked, use basename_dev
-        name = dev and self.NAME.split("_")[0] + "_dev" or self.NAME
-        DSN = "host={} user={} password={} dbname={}".format(self.HOST, self.USER, self.PASSWORD, name)
-        super().__init__(DSN,autocommit)
+    def __init__(self, autocommit=False, dev=None):
+        DSN = "host={} user={} password={} dbname={{}}".format(self.HOST, self.USER, self.PASSWORD)
+        super().__init__(DSN, autocommit, dev)
 
     def cursor(self):
         return self.connexion.cursor(cursor_factory=psycopg2.extras.DictCursor)
