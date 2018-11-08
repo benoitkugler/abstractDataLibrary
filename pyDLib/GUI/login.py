@@ -250,7 +250,7 @@ class Loading(QStackedWidget):
 
     def propose_load_local(self):
         fen = fenetres.LoadingError()
-        if fen.retour == True:
+        if fen.return_value == True:
             try:
                 self.theory_main.loggin_local()
             except StructureError as e:
@@ -259,7 +259,7 @@ class Loading(QStackedWidget):
             else:
                 self.status_bar.showMessage("Base de données locale chargée avec succès.", 3000)
                 self.loaded.emit()
-        elif fen.retour == 2:
+        elif fen.return_value == 2:
             self.updated.emit()
         else:
             self.canceled.emit()
