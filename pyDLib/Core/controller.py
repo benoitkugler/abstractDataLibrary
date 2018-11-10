@@ -151,7 +151,6 @@ class abstractInterface:
         th.done.connect(lambda: self.threads.remove(th))
         th.error.connect(lambda : self.threads.remove(th))
 
-
     def get_labels_stats(self):
         """Should return a list of labels describing the stats"""
         raise NotImplementedError
@@ -183,6 +182,9 @@ class abstractInterface:
             return True
 
         return groups.Collection(a for a in liste_base if choisi(a))
+
+    def copy_to_clipboard(self, text):
+        self.main.callbacks.copy_to_clipboard(text)
 
 
 class abstractInterInterfaces:

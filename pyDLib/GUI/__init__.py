@@ -73,11 +73,15 @@ class Icons:
     Back = "back.png"
     ArrowUp = "arrow_up.png"
     ArrowDown = "arrow_down.png"
+    Download = "download.png"
+
+    NAMES = ("Time", "Refresh", "Save", "Search",
+             "Favoris", "Add", "Delete", "Valid", "Default",
+             "Back", "ArrowUp", "ArrowDown", "Download")
 
     @classmethod
     def load_icons(cls):
-        for name in ["Time", "Refresh", "Save", "Search", "Favoris", "Add",
-                     "Delete", "Valid", "Default", "Back", "ArrowUp", "ArrowDown"]:
+        for name in cls.NAMES:
             val = _pixmap_from_ressource(getattr(cls, name))
             setattr(cls, name, val)
 

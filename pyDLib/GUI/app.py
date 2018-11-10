@@ -8,7 +8,7 @@ import os
 from PyQt5.QtCore import Qt, QSize, pyqtSignal, QPoint, QTimer
 from PyQt5.QtGui import QIcon, QKeySequence
 from PyQt5.QtWidgets import (QMainWindow, QToolBar, QStackedWidget, QTabWidget, qApp, QShortcut,
-                             QLabel, QCheckBox, QPushButton, QFormLayout, QLineEdit, QScrollArea)
+                             QLabel, QCheckBox, QPushButton, QFormLayout, QLineEdit, QScrollArea, QApplication)
 
 from . import PARAMETERS, AppIcon, Icons
 from . import common, load_options, login
@@ -127,6 +127,11 @@ class Application(QMainWindow):
 
         self._initUI()
         self._init_shortcuts()
+
+        self._set_callbacks()
+
+    def _set_callbacks(self):
+        self.theory_main.set_callback("copy_to_clipboard", lambda text: QApplication.clipboard().setText(text))
 
     def _initUI(self):
         self.toolbar = None
