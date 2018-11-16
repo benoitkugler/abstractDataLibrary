@@ -408,9 +408,9 @@ class DateEditable(QFrame):
         j.setAlignment(Qt.AlignCenter)
         m.setAlignment(Qt.AlignCenter)
         a.setAlignment(Qt.AlignCenter)
-        j.setSpecialValueText(" ")
-        m.setSpecialValueText(" ")
-        a.setSpecialValueText(" ")
+        j.setSpecialValueText("-")
+        m.setSpecialValueText("-")
+        a.setSpecialValueText("-")
         layout.addWidget(j, 0, 0)
         layout.addWidget(m, 0, 1)
         layout.addWidget(a, 0, 2, 1, 2)
@@ -421,30 +421,34 @@ class DateEditable(QFrame):
         a.editingFinished.connect(self.on_editing)
         self.ws = (a, m, j)
 
+    def _change_year_text_color(self, is_ok):
+        color = "black" if is_ok else "red"
+        self.ws[0].setStyleSheet(f"color : {color}")
+
     def on_editing(self):
-        current_date = self.get_data()
-        if current_date is None:
+        current_year = self.ws[0].value()
+        if not current_year:
             return
-        if current_date.year < 100:
-            self.ws[0].setValue(2000 + current_date.year)
-            self.ws[0].setStyleSheet("color : orange;")
-        else:
-            self.ws[0].setStyleSheet("")
+        self._change_year_text_color(not current_year < 100)
+        self.ws[0].setValue(current_year)
+
 
     def get_data(self):
         d = [self.ws[0].value(), self.ws[1].value(), self.ws[2].value()]
         try:
-            self.setStyleSheet("")
             return datetime.date(*d)
         except ValueError:
-            self.setStyleSheet("color : orange;")
             return
 
     def set_data(self, d):
-        d = d and (d.year, d.month, d.day) or (0, 0, 0)
-        self.ws[0].setValue(d[0])
-        self.ws[1].setValue(d[1])
-        self.ws[2].setValue(d[2])
+        if d is None:
+            self.ws[0].clear()
+            self.ws[1].clear()
+            self.ws[2].clear()
+        else:
+            self.ws[0].setValue(d.year)
+            self.ws[1].setValue(d.month)
+            self.ws[2].setValue(d.day)
         self.on_editing()
 
 
