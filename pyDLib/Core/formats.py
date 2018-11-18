@@ -235,9 +235,14 @@ class abstractRender():
 
 
     @staticmethod
-    def default(objet):
+    def default(objet, case=None):
         objet = "" if objet is None else objet
-        return str(objet).strip(' \t\n\r')
+        s = str(objet).strip(' \t\n\r')
+        if case == "upper":
+            return s.upper()
+        elif case == "capitalize":
+            return s.capitalize()
+        return s
 
     @staticmethod
     def boolen(objet):
@@ -296,10 +301,9 @@ class abstractRender():
         return "\n".join(" - ".join(objet[2*i:2*i+1]) for i in range(len(objet)//3) )
 
 
-
-def _type_string(label):
+def _type_string(label, case=None):
     """Shortcut for string like fields"""
-    return label, abstractSearch.in_string, abstractRender.default, ""
+    return label, abstractSearch.in_string, lambda s: abstractRender.default(s, case=case), ""
 
 def _type_date(label):
     """Shortcut for date like fields"""
@@ -332,10 +336,10 @@ Every field name is linked to a tuple (`label`,`recherche`,`affichage`,`default`
 """
 ASSOCIATION = {
     'mail': _type_string("Adresse e-mail"),
-    'nom': _type_string("Nom"),
+    'nom': _type_string("Nom", case="upper"),
     'nom_jeune_fille': _type_string("Nom de jeune fille"),
     'adresse': _type_string("Adresse"),
-    'prenom': _type_string("Prénom"),
+    'prenom': _type_string("Prénom", case="capitalize"),
     'password': _type_string("Mot de passe"),
     'ville': _type_string("Ville"),
     'ville_naissance': _type_string("Ville de naissance"),
