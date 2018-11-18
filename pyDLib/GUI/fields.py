@@ -260,9 +260,10 @@ class abstractEntierEditable(QSpinBox):
         self.setMinimum(self.MIN)
         self.setSuffix(self.UNITE)
         self.valueChanged.connect(self.data_changed.emit)
+        self.setSpecialValueText(" ")
 
     def set_data(self, somme):
-        somme = somme if somme is not None else self.DEFAULT
+        somme = somme if somme is not None else (self.MIN - 1)
         self.setValue(somme)
 
     def get_data(self):
@@ -519,6 +520,28 @@ class Texte(QPlainTextEdit):
         self.setPlainText(text)
 
 
+class OptionsButton(QPushButton):
+    """Bouton to open window to acces advanced options.
+    CLASS_PANEL_OPTIONS is responsible for doing the actual modification"""
+
+    TITLE = "Advanced options"
+    CLASS_PANEL_OPTIONS = None
+
+    options_changed = pyqtSignal()
+
+    def __init__(self, acces, is_editable):
+        super(OptionsButton, self).__init__(self.TITLE)
+        self.clicked.connect(self.show_options)
+        self.acces = acces
+        self.is_editable = is_editable
+
+    def show_options(self):
+        f = self.CLASS_PANEL_OPTIONS(self.acces, self.is_editable)
+        if f.exec_():
+            self.options_changed.emit()
+
+    def set_data(self, *args):
+        pass
 
 
 
