@@ -15,8 +15,12 @@ class sortableListe(list):
         """
         value_default = formats.ASSOCIATION[attribut][3]
 
-        def get(d):
-            return d[attribut] or value_default
+        if type(value_default) is str:  # case insensitive sort
+            def get(d):
+                return (d[attribut] or value_default).casefold()
+        else:
+            def get(d):
+                return d[attribut] or value_default
 
         list.sort(self, key=get, reverse=order)
 

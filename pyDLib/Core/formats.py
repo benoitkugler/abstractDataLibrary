@@ -305,13 +305,16 @@ def _type_string(label, case=None):
     """Shortcut for string like fields"""
     return label, abstractSearch.in_string, lambda s: abstractRender.default(s, case=case), ""
 
+
 def _type_date(label):
     """Shortcut for date like fields"""
     return label, abstractSearch.in_date, abstractRender.date, DATE_DEFAULT
 
+
 def _type_datetime(label):
     """Shortcut for datetime like fields"""
     return label, abstractSearch.in_dateheure, abstractRender.dateheure, DATETIME_DEFAULT
+
 
 def _type_bool(label,default=False):
     """Shortcut fot boolean like fields"""
