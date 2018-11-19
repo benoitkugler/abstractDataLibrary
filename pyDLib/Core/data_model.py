@@ -38,7 +38,7 @@ class abstractAcces:
         """Gives priority to modifications"""
         if item in self.FIELDS_OPTIONS:
             if "options" in self.modifications:
-                return self.modifications["options"][item]
+                return self.modifications["options"].get(item, None)
             elif self.Id is not None:
                 return getattr(self.base, self.TABLE)[self.Id].get("options", {}).get(item, None)
             else:

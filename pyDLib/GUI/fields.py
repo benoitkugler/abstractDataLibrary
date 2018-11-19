@@ -474,7 +474,7 @@ class MontantEditable(QFrame):
 
 
 class DateRange(QFrame):
-    data_changed = pyqtSignal(datetime.date, datetime.date)
+    data_changed = pyqtSignal(object, object)
 
     def __init__(self):
         super().__init__()
