@@ -27,18 +27,17 @@ class JsonEncoder(json.JSONEncoder):
         return super().default(o)
 
 
+
 def date_decoder(dic):
     """Add python types decoding. See JsonEncoder"""
     if '__date__' in dic:
-        dic.pop('__date__')
         try:
-            d = datetime.date(**dic)
+            d = datetime.date(**{c: v for c, v in dic.items() if not c == "__date__"})
         except (TypeError, ValueError):
             raise json.JSONDecodeError("Corrupted date format !", str(dic), 1)
     elif '__datetime__' in dic:
-        dic.pop('__datetime__')
         try:
-            d = datetime.datetime(**dic)
+            d = datetime.datetime(**{c: v for c, v in dic.items() if not c == "__datetime__"})
         except (TypeError, ValueError):
             raise json.JSONDecodeError("Corrupted datetime format !", str(dic), 1)
     else:
