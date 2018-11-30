@@ -24,7 +24,7 @@ FICHIER_CREDENCES_LOCAL_DEV = "credences/credences_local_dev"
 
 
 def id_from_name(s):
-    s = s.lower()
+    s = (s or "").lower()
     return re.sub("[^a-zA-Z0-9]", "", s)
 
 
