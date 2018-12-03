@@ -7,7 +7,7 @@ from PyQt5.QtWidgets import (QFrame, QSizePolicy,
                              QLabel, QPushButton, QLineEdit, QCheckBox,
                              QStackedWidget, QHBoxLayout, QVBoxLayout, QGridLayout)
 
-from . import MakeLoader, UserAvatar, SuperUserAvatar, fenetres, Icons
+from . import UserAvatar, SuperUserAvatar, fenetres, Icons
 from ..Core import StructureError, ConnexionError
 
 
@@ -131,20 +131,15 @@ class UserForm(QFrame):
         autolog = self.autolog.isChecked()
         id_user = self.user["id"]
         # Animation de transition
-        self.loader = MakeLoader(self.button_valid)
-        self.loader.start()
+        self.button_valid.setText("Vérification du mot de passe...")
+        self.button_valid.repaint()
         self.validated.emit(id_user, mdp, autolog)
 
     def show_mdp_invalide(self):
-        if self.loader:
-            self.loader.stop()
         self.retour_mdp.setText("Le mot de passe est incorrect.")
+        self.button_valid.setText("Démarrer")
         self.entree.clear()
         self.entree.setFocus()
-
-    def __del__(self):
-        if self.loader:
-            self.loader.stop()
 
     def simule_input(self, mdp, autolog):
         self.entree.setText(mdp)
@@ -240,6 +235,7 @@ class Loading(QStackedWidget):
             self.propose_load_local()
         else:
             if r:
+                self.widget_formulaire.button_valid.setText("Démarrage...")
                 self.status_bar.showMessage("Base de données distante chargée avec succès", 3000)
                 self.loaded.emit()
             else:
