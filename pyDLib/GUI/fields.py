@@ -129,8 +129,14 @@ class abstractEnum(QLabel):
 
     def set_data(self, value):
         self.value = value
-        value = value or self.DEFAULT_VALUE
-        self.setText(self.VALUE_TO_LABEL[value])
+        if self.value is None:
+            if self.DEFAULT_VALUE:
+                value = self.DEFAULT_VALUE
+                self.setText(self.VALUE_TO_LABEL[value])
+            else:
+                self.setText("")
+        else:
+            self.setText(self.VALUE_TO_LABEL[self.value])
 
     def get_data(self):
         return self.value
@@ -183,7 +189,7 @@ class DepartementEditable(abstractEnumEditable):
 
 class SexeFixe(abstractEnum):
     VALUE_TO_LABEL = formats.SEXES
-    DEFAULT_VALUE = "F"
+
 
 
 class SexeEditable(abstractEnumEditable):
