@@ -151,12 +151,19 @@ class abstractDictTable(dict):
             return groups.Collection(Ac(base, i) for i in self)
 
         if len(pattern) >= MIN_CHAR_SEARCH:  # Needed chars.
+            sub_patterns = pattern.split(" ")
             try:
-                regexp = re.compile(pattern, flags=re.I)
+                regexps = tuple(re.compile(sub_pattern, flags=re.I) for sub_pattern in sub_patterns)
             except re.error:
                 return groups.Collection()
+
+            def search(string):
+                for regexp in regexps:
+                    if not regexp.search(string):
+                        return False
+                return True
+
             to_string_hook = to_string_hook or self._record_to_string
-            search = regexp.search
             return groups.Collection(Ac(base, i) for i, p in self.items() if search(to_string_hook(p)))
 
         return groups.Collection()
