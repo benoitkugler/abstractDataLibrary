@@ -124,9 +124,12 @@ class SearchBox(QFrame):
         self.nb_res.setObjectName("search-result")
         self.nb_res.setAlignment(Qt.AlignCenter)
 
+        self.restreint = QCheckBox("Se restreindre aux résulats courants")
+        self.restreint.setToolTip("Ne cherche que dans les résultats affichés actuellement.")
+
         valid = QPushButton("Chercher")
         valid.setObjectName("round")
-        valid.setToolTip("Cherche en se restreignant à aux résultats de la recherche précédente.")
+        valid.setToolTip("Lance une recherche sur tous les champs affichés.")
         valid.clicked.connect(self.on_search)
 
         retour = QPushButton("Annuler")
@@ -138,13 +141,17 @@ class SearchBox(QFrame):
         box.addWidget(QLabel("Rechercher :"), 0, 0, 1, 2)
         box.addWidget(self.entree, 1, 0, 1, 2)
         box.addWidget(self.nb_res, 2, 0, 1, 2)
-        box.addWidget(valid, 3, 0)
-        box.addWidget(retour, 3, 1)
+        box.addWidget(self.restreint, 3, 0, 1, 2)
+        box.addWidget(valid, 4, 0)
+        box.addWidget(retour, 4, 1)
 
     def on_search(self):
         text = self.entree.text()
         if len(text) > 0:
-            nb = self.interface.recherche(text, self.search_header)
+            if self.restreint.isChecked():
+                nb = self.interface.recherche(text, self.search_header)
+            else:
+                nb = self.interface.recherche(text, self.search_header, in_all=True)
             self._res_search(nb)
         else:
             self.interface.reset()
