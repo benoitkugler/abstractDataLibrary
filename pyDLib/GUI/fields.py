@@ -336,7 +336,7 @@ class BoolEditable(QFrame):
 
 class DefaultEditable(QLineEdit):
     data_changed = pyqtSignal(str)
-
+    MAX_LENGTH = None
     def __init__(self, parent=None, completion=[]):
         super().__init__(parent)
         self.textChanged.connect(self.data_changed.emit)
@@ -344,12 +344,18 @@ class DefaultEditable(QLineEdit):
             c = QCompleter(completion)
             c.setCaseSensitivity(Qt.CaseInsensitive)
             self.setCompleter(c)
+        if self.MAX_LENGTH:
+            self.setMaxLength(self.MAX_LENGTH)
 
     def set_data(self, value):
         self.setText(str(value or ""))
 
     def get_data(self):
         return self.text()
+
+
+def LimitedDefaultEditable(max_length):
+    return type("LDefaultEditable", (DefaultEditable,), {"MAX_LENGTH": max_length})
 
 
 class OptionnalTextEditable(QFrame):
