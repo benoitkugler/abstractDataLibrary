@@ -599,7 +599,7 @@ def Sexe(value, is_editable):
 
 
 def Adresse(value, is_editable):
-    return Texte(value, is_editable, placeholder="")
+    return Texte(value, is_editable, placeholder="Adresse...")
 
 
 def ModePaiement(value, is_editable):
