@@ -520,7 +520,7 @@ class Texte(QPlainTextEdit):
     def __init__(self, text, is_editable, placeholder="Informations complémentaires"):
         super().__init__(text)
         self.setSizeAdjustPolicy(QPlainTextEdit.AdjustToContents)
-        self.setMinimumHeight(30)
+        self.setMinimumHeight(50)
         self.setPlaceholderText(placeholder)
         self.setReadOnly(not is_editable)
         self.textChanged.connect(lambda: self.data_changed.emit(self.toPlainText()))
