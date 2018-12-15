@@ -707,3 +707,4 @@ class abstractMutableList(QFrame):
 
     def get_data(self):
         return self.view.model().collection
+

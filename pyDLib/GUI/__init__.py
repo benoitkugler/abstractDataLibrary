@@ -10,6 +10,8 @@ from PyQt5.QtCore import QTimer
 from PyQt5.QtGui import QColor, QIcon, QPixmap
 from PyQt5.QtWidgets import QToolButton, QLayout, QGraphicsOpacityEffect, QApplication
 
+# from .waitingspinnerwidget import QtWaitingSpinner, Overlay
+
 CONFIGURATION_PATH =  "configuration/"
 
 STYLE_FILES = {"MAIN_STYLE": "main_style.css", "WIDGETS_STYLE": "widgets_style.css"}
