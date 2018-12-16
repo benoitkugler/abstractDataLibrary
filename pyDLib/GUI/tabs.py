@@ -1,6 +1,7 @@
 import logging
 
-from PyQt5.QtCore import pyqtSignal
+from PyQt5.QtCore import pyqtSignal, QUrl
+from PyQt5.QtGui import QDesktopServices
 from PyQt5.QtWidgets import QFrame, QStatusBar
 
 from pyDLib.GUI import fenetres
@@ -47,3 +48,6 @@ class abstractModule(QFrame):
             logging.debug(f"{self.__class__.__name__} : Tous les callbacks demandés sont fournis.")
         else:
             logging.warning(f"{self.__class__.__name__} didn't set asked callbacks {manquantes}")
+
+    def show_local_file(self, filepath):
+        QDesktopServices.openUrl(QUrl.fromLocalFile(filepath))

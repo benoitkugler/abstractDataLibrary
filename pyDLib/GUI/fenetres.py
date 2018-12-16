@@ -43,7 +43,8 @@ class WarningBox(abstractDialog):
 
     def __init__(self, message):
         super(WarningBox, self).__init__(text=message)
-        self.return_value = self.exec_()
+        self.return_value = None
+        self.exec_()
 
 
 class MultiChoiceDialog(abstractDialog):
