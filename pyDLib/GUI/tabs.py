@@ -9,8 +9,8 @@ from ..Core import controller
 
 
 class abstractModule(QFrame):
-    popup_asked = pyqtSignal(str)
-    """Asks for bottom right popup displaying given string"""
+    popup_asked = pyqtSignal(str, object)
+    """Asks for bottom right popup displaying given string, title (maybe none)"""
 
     status_bar: QStatusBar
     interface: controller.abstractInterface

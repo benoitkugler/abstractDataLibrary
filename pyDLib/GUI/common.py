@@ -6,9 +6,9 @@ from PyQt5.QtCore import *
 from PyQt5.QtGui import QPainter, QBrush, QPen
 from PyQt5.QtWidgets import (QFrame, QLabel, QPushButton, QLineEdit, QFormLayout, QFileDialog, QCheckBox,
                              QHBoxLayout, QVBoxLayout, QGridLayout, QProgressBar,
-                             qApp, QWidget, QPlainTextEdit)
+                             qApp, QWidget, QPlainTextEdit, QToolButton)
 
-from . import clear_layout
+from . import clear_layout, Icons
 from .fenetres import Window
 from .fields import ASSOCIATION
 from ..Core import data_model
@@ -243,13 +243,21 @@ class abstractFilter(QFrame):
 
 class Popup(QWidget):
 
-    def __init__(self, parent, text):
+    def __init__(self, parent, text, title):
         super(Popup, self).__init__(parent=parent)
         self.setWindowFlags(self.windowFlags() | Qt.WindowStaysOnTopHint | Qt.FramelessWindowHint | Qt.ToolTip | Qt.WindowCloseButtonHint)
         self.setAttribute(Qt.WA_TranslucentBackground)
         layout = QVBoxLayout(self)
         label = QPlainTextEdit(text)
         label.setReadOnly(True)
+        close = QToolButton()
+        close.setIcon(Icons.Delete.as_icon())
+        close.clicked.connect(self.close)
+
+        header = QHBoxLayout()
+        header.addWidget(QLabel(title or ""))
+        header.addWidget(close)
+        layout.addLayout(header)
         layout.addWidget(label)
 
     def paintEvent(self, paintEvent):

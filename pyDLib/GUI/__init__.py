@@ -67,29 +67,22 @@ class Icon(QPixmap):
 
 
 class Icons:
-    Time = "historique.png"
-    Refresh = "refresh.png"
-    Save = "save.png"
-    Search = "search.png"
-    Favoris = "favoris.png"
-    Add = "add.png"
-    Delete = "delete.png"
-    Valid = "ok.png"
-    Default = "default.png"
-    Back = "back.png"
-    ArrowUp = "arrow_up.png"
-    ArrowDown = "arrow_down.png"
-    Download = "download.png"
-
-    NAMES = ("Time", "Refresh", "Save", "Search",
-             "Favoris", "Add", "Delete", "Valid", "Default",
-             "Back", "ArrowUp", "ArrowDown", "Download")
 
     @classmethod
     def load_icons(cls):
-        for name in cls.NAMES:
-            pixmap = Icon(getattr(cls, name))
-            setattr(cls, name, pixmap)
+        cls.Time = Icon("historique.png")
+        cls.Refresh = Icon("refresh.png")
+        cls.Save = Icon("save.png")
+        cls.Search = Icon("search.png")
+        cls.Favoris = Icon("favoris.png")
+        cls.Add = Icon("add.png")
+        cls.Delete = Icon("delete.png")
+        cls.Valid = Icon("ok.png")
+        cls.Default = Icon("default.png")
+        cls.Back = Icon("back.png")
+        cls.ArrowUp = Icon("arrow_up.png")
+        cls.ArrowDown = Icon("arrow_down.png")
+        cls.Download = Icon("download.png")
 
 
 

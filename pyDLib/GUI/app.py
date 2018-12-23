@@ -26,7 +26,7 @@ class abstractMainTabs(QTabWidget):
     """Modules container"""
 
     interface_changed = pyqtSignal(controller.abstractInterface)
-    popup_asked = pyqtSignal(str)
+    popup_asked = pyqtSignal(str, object)
 
     Id_to_Classes = {}
     """Dict. { module_name : (GUI_module_class , label) }"""
@@ -183,11 +183,11 @@ class Application(QMainWindow):
         if maximized:
             self.showMaximized()
 
-    def show_popup(self, text):
+    def show_popup(self, text, title):
         if self.current_popup:
             self.current_popup.hide()
         if text:
-            self.current_popup = common.Popup(self, text)
+            self.current_popup = common.Popup(self, text, title)
             QTimer.singleShot(self.POPUP_TIMEOUT, self.current_popup.hide)
             self.current_popup.show()
             self._move_popup()
