@@ -55,11 +55,15 @@ def load_options():
         PARAMETERS[name] = style + "\n" + style_add
 
 
-def _pixmap_from_ressource(name):
-    b = pkgutil.get_data("pyDLib", os.path.join("ressources/images", name))
-    pixmap = QPixmap()
-    pixmap.loadFromData(b)
-    return pixmap
+class Icon(QPixmap):
+
+    def __init__(self, name):
+        super().__init__()
+        b = pkgutil.get_data("pyDLib", os.path.join("ressources/images", name))
+        self.loadFromData(b)
+
+    def as_icon(self):
+        return QIcon(self)
 
 
 class Icons:
@@ -84,8 +88,8 @@ class Icons:
     @classmethod
     def load_icons(cls):
         for name in cls.NAMES:
-            val = _pixmap_from_ressource(getattr(cls, name))
-            setattr(cls, name, val)
+            pixmap = Icon(getattr(cls, name))
+            setattr(cls, name, pixmap)
 
 
 
@@ -120,7 +124,7 @@ class UserAvatar(QPixmap):
     IMAGE = "user.png"
 
     def __init__(self):
-        super(UserAvatar, self).__init__(_pixmap_from_ressource(self.IMAGE))
+        super(UserAvatar, self).__init__(Icon(self.IMAGE))
 
 
 class SuperUserAvatar(UserAvatar):
