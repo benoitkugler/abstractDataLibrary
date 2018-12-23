@@ -1,0 +1,4 @@
+*.pyc
+.idea/*
+dist/*
+pyDLib.egg-info/*
