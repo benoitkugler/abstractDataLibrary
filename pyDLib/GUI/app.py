@@ -114,6 +114,9 @@ class Application(QMainWindow):
     theory_main: controller.abstractInterInterfaces
     current_popup: common.Popup
 
+    POPUP_TIMEOUT = 10000
+    """Time (in ms) for the popup to fade"""
+
     WINDOW_TITLE = "abstract Data App"
 
     TABS_CLASS = abstractMainTabs
@@ -185,7 +188,7 @@ class Application(QMainWindow):
             self.current_popup.hide()
         if text:
             self.current_popup = common.Popup(self, text)
-            QTimer.singleShot(2000, self.current_popup.hide)
+            QTimer.singleShot(self.POPUP_TIMEOUT, self.current_popup.hide)
             self.current_popup.show()
             self._move_popup()
 

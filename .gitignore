@@ -2,3 +2,4 @@
 .idea/*
 dist/*
 pyDLib.egg-info/*
+.vscode/settings.json

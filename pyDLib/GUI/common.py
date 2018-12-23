@@ -245,7 +245,7 @@ class Popup(QWidget):
 
     def __init__(self, parent, text):
         super(Popup, self).__init__(parent=parent)
-        self.setWindowFlags(self.windowFlags() | Qt.WindowStaysOnTopHint | Qt.FramelessWindowHint | Qt.ToolTip)
+        self.setWindowFlags(self.windowFlags() | Qt.WindowStaysOnTopHint | Qt.FramelessWindowHint | Qt.ToolTip | Qt.WindowCloseButtonHint)
         self.setAttribute(Qt.WA_TranslucentBackground)
         layout = QVBoxLayout(self)
         label = QPlainTextEdit(text)
