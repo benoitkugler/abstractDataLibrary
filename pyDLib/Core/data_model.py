@@ -249,7 +249,7 @@ class abstractBase:
         try:
             dic = json.loads(json_str, object_hook=formats.date_decoder)
         except json.JSONDecodeError as e:
-            raise StructureError("Données corrompues !")
+            raise StructureError(f"Données corrompues ! {e.doc}")
         return dic
 
     @classmethod

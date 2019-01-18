@@ -40,7 +40,7 @@ class Renderer():
                 return _custom_font(is_bold=True)
         elif orientation == Qt.Vertical:
             if role == Qt.DecorationRole:
-                return Icons.Delete
+                return Icons.Delete.as_icon()
             elif role == Qt.ToolTipRole:
                 return Renderer.SUPPRESS_TOOLTIP
 
