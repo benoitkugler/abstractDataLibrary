@@ -183,6 +183,9 @@ class LocalConnexion(abstractConnexion):
         return self.connexion.cursor()
 
 
+psycopg2.extras.register_default_json(loads=lambda s: json.loads(s,object_hook=formats.date_decoder), globally=True)
+psycopg2.extras.register_default_jsonb(loads=lambda s: json.loads(s,object_hook=formats.date_decoder), globally=True)
+
 
 class RemoteConnexion(abstractConnexion):
     """Connexion to local PostgreSQL DB"""

@@ -34,7 +34,7 @@ def date_decoder(dic):
         try:
             d = datetime.date(**{c: v for c, v in dic.items() if not c == "__date__"})
         except (TypeError, ValueError):
-            raise json.JSONDecodeError("Corrupted datse format !", str(dic), 1)
+            raise json.JSONDecodeError("Corrupted date format !", str(dic), 1)
     elif '__datetime__' in dic:
         try:
             d = datetime.datetime(**{c: v for c, v in dic.items() if not c == "__datetime__"})
