@@ -687,6 +687,8 @@ class abstractMutableList(QFrame):
         self.add_button = add_button
 
         layout = QVBoxLayout(self)
+        layout.setContentsMargins(0,0,0,0)
+        layout.setSpacing(0)
         layout.addWidget(self.view)
         if is_editable:
             layout.addWidget(add_button)

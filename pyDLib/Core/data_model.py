@@ -289,7 +289,9 @@ class abstractBase:
 
     @classmethod
     def _get_table(cls, nom, data):
-        return cls.TABLES[nom].from_data(data)
+        if nom in cls.TABLES:
+            return cls.TABLES[nom].from_data(data)
+        return None
 
     def load_partiel(self, **kwargs):
         for i, v in kwargs.items():
