@@ -189,8 +189,6 @@ class abstractSearch():
     abstractSearch functions, which take `objet` and a `pattern` and return a matching boolean.
     """
 
-    REGEXP_TELEPHONE = re.compile("[^0-9]")
-
     @staticmethod
     def nothing(objet, pattern):
         """ Renvoie constamment *False* """
@@ -221,9 +219,8 @@ class abstractSearch():
 
     @staticmethod
     def in_telephones(objet, pattern):
-        """ abstractSearch dans une liste de téléphones. Ignore les caractères non numérique du `pattern`. """
+        """ abstractSearch dans une liste de téléphones."""
         objet = objet or []
-        pattern = abstractSearch.REGEXP_TELEPHONE.sub('', pattern)
         if pattern == '' or not objet:
             return False
         return max(bool(re.search(pattern, t)) for t in objet)
