@@ -180,7 +180,8 @@ DEPARTEMENTS = defaultdict(lambda: "Inconnu", **DEPARTEMENTS)
 
 SEXES = {"M": "Homme", "F": "Femme"}
 
-MODE_PAIEMENT = {"vir": "Virement", "cheque": "Chèque", "esp": "Espèces", "cb": "Carte bancaire"}
+MODE_PAIEMENT = {"vir": "Virement", "cheque": "Chèque", "esp": "Espèces", "cb": "Carte bancaire", 
+                    "ancv" : "ANCV"}
 """Mode de paiements"""
 
 
