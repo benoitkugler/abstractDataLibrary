@@ -33,6 +33,7 @@ class abstractModule(QFrame):
 
         self.interface.sortie_erreur_GUI = on_error
         self.interface.sortie_standard_GUI = on_done
+        self.interface.callbacks.show_local_file = self.show_local_file
 
     def set_callbacks(self, **dic_functions):
         """Register callbacks needed by the interface object"""
