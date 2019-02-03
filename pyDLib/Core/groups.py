@@ -86,15 +86,16 @@ class Collection(sortableListe):
     def __str__(self):
         return "\n".join(str(a) for a in self)
 
-
-
-
     def get_info(self, key=None, Id=None) -> dict:
         """Returns information associated with Id or list index"""
         if key is not None:
             Id = self[key].Id
         return self.infos.get(Id,{})
 
+    def set_info(self, Id, key, value):
+        current_info = self.infos.get(Id, {})
+        current_info[key] = value
+        self.infos[Id] = current_info
 
     def recherche(self, pattern, entete):
         """Performs a search field by field, using functions defined in formats.
