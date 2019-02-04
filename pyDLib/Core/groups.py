@@ -18,7 +18,9 @@ class sortableListe(list):
         if type(value_default) is str:  # case insensitive sort
             get = lambda d : (d[attribut] or value_default).casefold()
         elif type(value_default) is dict: #can't sort dicts
-            get = lambda d : sorted((d[attribut] or value_default).values())
+            def get(d):
+                u = d[attribut] or value_default
+                return [str(u[i]) for i in sorted(u.keys())]
         else:
             get = lambda d : d[attribut] or value_default
 
