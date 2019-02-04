@@ -16,11 +16,11 @@ class sortableListe(list):
         value_default = formats.ASSOCIATION[attribut][3]
 
         if type(value_default) is str:  # case insensitive sort
-            def get(d):
-                return (d[attribut] or value_default).casefold()
+            get = lambda d : (d[attribut] or value_default).casefold()
+        elif type(value_default) is dict: #can't sort dicts
+            get = lambda d : sorted((d[attribut] or value_default).values())
         else:
-            def get(d):
-                return d[attribut] or value_default
+            get = lambda d : d[attribut] or value_default
 
         list.sort(self, key=get, reverse=order)
 
