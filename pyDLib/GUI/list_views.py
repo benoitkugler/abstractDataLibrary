@@ -157,7 +157,10 @@ class abstractModel(QAbstractTableModel):
         :return: Dict-like item
         """
         row = index.row() if hasattr(index, "row") else index
-        return self.collection[row]
+        try:
+            return self.collection[row]
+        except IndexError: #invalid index for exemple
+            return None
 
     def set_collection(self, collection):
         """Reset sort state, set collection and emit resetModel signal"""
