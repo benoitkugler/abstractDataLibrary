@@ -2,7 +2,7 @@
 import json
 import logging
 import os
-from typing import Dict, Type, List
+from typing import Dict, Type, List, Optional
 
 from . import data_model, groups, formats, sql, threads, security
 from . import init_all, StructureError
@@ -12,7 +12,8 @@ class Callbacks:
 
     def __getattr__(self, key):
         def f(*args, **kwargs):
-            logging.error(f"No callback with name {key}, args {args} and kwargs {kwargs} registered !")
+            logging.error(
+                f"No callback with name {key}, args {args} and kwargs {kwargs} registered !")
 
         return f
 
@@ -24,14 +25,14 @@ class abstractInterface:
     It's up to the interface to choose between a soft update or a hard one (with reset)
     """
 
-    ACCES:Type[data_model.abstractAcces] = data_model.abstractAcces
+    ACCES: Type[data_model.abstractAcces] = data_model.abstractAcces
     """Default acces. Used in the convenient function get_acces"""
 
-    CALLBACKS:List[str] = []
+    CALLBACKS: List[str] = []
     """Functions that a GUI module should provide. 
     Note : a callback update_toolbar should be also set (by the mai GUI application)"""
 
-    TABLE = None
+    TABLE: Optional[str] = None
     """Default table used to build main collection (through get_all)"""
 
     base: data_model.abstractBase
@@ -56,7 +57,7 @@ class abstractInterface:
         self.resets = []  # graphiques resets
 
         self.callbacks = Callbacks()  # Containers for callbacks
-        self.set_callback("update_toolbar",lambda : None)
+        self.set_callback("update_toolbar", lambda: None)
 
         self.threads = []  # Active threads
 
@@ -130,7 +131,8 @@ class abstractInterface:
         Succes or failure are controlled by on_error and on_success
         """
         if not self.main.mode_online:
-            self.sortie_erreur_GUI("Local mode activated. Can't run background task !")
+            self.sortie_erreur_GUI(
+                "Local mode activated. Can't run background task !")
             self.reset()
             return
 
@@ -145,14 +147,15 @@ class abstractInterface:
             on_error(r)
             self.reset()
 
-        logging.info(f"Launching background task from interface {self.__class__.__name__} ...")
+        logging.info(
+            f"Launching background task from interface {self.__class__.__name__} ...")
         th = threads.worker(job, thread_error, thread_end)
         self._add_thread(th)
 
     def _add_thread(self, th):
         self.threads.append(th)
         th.done.connect(lambda: self.threads.remove(th))
-        th.error.connect(lambda : self.threads.remove(th))
+        th.error.connect(lambda: self.threads.remove(th))
 
     def get_labels_stats(self):
         """Should return a list of labels describing the stats"""
@@ -224,11 +227,12 @@ class abstractInterInterfaces:
 
     def load_preferences(self):
         if not os.path.isfile(self.PATH_PREFERENCES):
-            logging.warning(f"No user preferences file found in {os.path.abspath(self.PATH_PREFERENCES)} !")
+            logging.warning(
+                f"No user preferences file found in {os.path.abspath(self.PATH_PREFERENCES)} !")
             return {}
         with open(self.PATH_PREFERENCES, "r", encoding="utf8") as f:
             try:
-                return json.load(f,object_hook=formats.date_decoder)
+                return json.load(f, object_hook=formats.date_decoder)
             except json.JSONDecodeError:
                 logging.exception("User preferences file corrupted !")
                 return {}
@@ -247,7 +251,7 @@ class abstractInterInterfaces:
 
         :param callback_etat: State renderer str , int , int -> None
         """
-        callback_etat("Chargement des utilisateurs",0,1)
+        callback_etat("Chargement des utilisateurs", 0, 1)
         self._load_users()
         self.base = self.BASE_CLASS.load_from_db(callback_etat=callback_etat)
 
@@ -273,7 +277,8 @@ class abstractInterInterfaces:
                                       "should be setup in INTERFACES_MODULE !")
         else:
             for module, permission in self.modules.items():
-                i = getattr(self.INTERFACES_MODULE, module).Interface(self, permission)
+                i = getattr(self.INTERFACES_MODULE,
+                            module).Interface(self, permission)
                 self.interfaces[module] = i
 
     def export_data(self, bases, savedir):
@@ -318,7 +323,8 @@ class abstractInterInterfaces:
         """Check mdp and return True it's ok"""
         r = sql.abstractRequetesSQL.check_mdp_user(user_id, mdp)
         if r():
-            self.autolog[user_id] = autolog and mdp or False  # update auto-log params
+            # update auto-log params
+            self.autolog[user_id] = autolog and mdp or False
             self.modules = self.users[user_id]["modules"]  # load modules list
 
             dic = {"autolog": self.autolog, "modules": self.modules}
@@ -339,7 +345,8 @@ class abstractInterInterfaces:
                 s = security.protege_data(s, False)
                 modules = json.loads(s)["modules"]
         except (KeyError, FileNotFoundError) as e:
-            raise StructureError("Impossible des lire les derniers modules utilisés !")
+            raise StructureError(
+                "Impossible des lire les derniers modules utilisés !")
         else:
             self.modules = {k: 0 for k in modules}  # low permission
             self.mode_online = False
