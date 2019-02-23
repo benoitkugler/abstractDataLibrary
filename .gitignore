@@ -3,3 +3,4 @@
 dist/*
 pyDLib.egg-info/*
 .vscode/settings.json
+**/.mypy_cache/*

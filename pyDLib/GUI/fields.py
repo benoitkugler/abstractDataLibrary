@@ -4,6 +4,7 @@ ASSOCIATION should be updated with custom widgets, since common.abstractDetails 
 import datetime
 import re
 from collections import defaultdict
+from typing import List
 
 from PyQt5.QtCore import pyqtSignal, Qt, QPoint
 from PyQt5.QtGui import QColor, QPen, QBrush, QIcon
@@ -14,27 +15,7 @@ from . import list_views, clear_layout, Icons
 from ..Core import formats
 
 
-class abstractNewButton(QFrame):
-    data_changed = pyqtSignal(object)
-    LABEL = "Add"
-
-    def __init__(self, is_editable):
-        super().__init__()
-        self.is_editable = is_editable
-        self.setLayout(QHBoxLayout())
-        self.set_button()
-
-    def set_button(self):
-        b = QPushButton(self.LABEL)
-        b.clicked.connect(self.enter_edit)
-        b.setEnabled(self.is_editable)
-        self.layout().addWidget(b)
-
-    def enter_edit(self):
-        pass
-
-
-class NouveauTelephone(abstractNewButton):
+class NouveauTelephone(list_views.abstractNewButton):
     LABEL = "Ajouter un numéro"
 
     @staticmethod
@@ -77,7 +58,7 @@ class NouveauTelephone(abstractNewButton):
 class Tels(list_views.abstractMutableList):
 
     LIST_PLACEHOLDER = "Aucun numéro."
-    LIST_HEADER = None
+    LIST_HEADER: List[str] = []
 
     BOUTON = NouveauTelephone
 
@@ -121,22 +102,12 @@ class Duree(QLabel):
 # -------------- Enumerations vizualisation --------------
 class abstractEnum(QLabel):
 
-    VALUE_TO_LABEL = None
+    VALUE_TO_LABEL = {}
     """Dict. giving label from raw value"""
-
-    DEFAULT_VALUE = None
-    """Default raw value"""
 
     def set_data(self, value):
         self.value = value
-        if self.value is None:
-            if self.DEFAULT_VALUE:
-                value = self.DEFAULT_VALUE
-                self.setText(self.VALUE_TO_LABEL[value])
-            else:
-                self.setText("")
-        else:
-            self.setText(self.VALUE_TO_LABEL[self.value])
+        self.setText(self.VALUE_TO_LABEL.get(self.value, ""))
 
     def get_data(self):
         return self.value
@@ -145,11 +116,8 @@ class abstractEnum(QLabel):
 class abstractEnumEditable(QComboBox):
     data_changed = pyqtSignal(object)
 
-    VALEURS_LABELS = None
+    VALEURS_LABELS = []
     """List of tuples (value, label) or None to add a separator"""
-
-    DEFAULT_VALUE = None
-    """Default raw value"""
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -179,32 +147,25 @@ class abstractEnumEditable(QComboBox):
 # -------------------- Commons types --------------------
 class DepartementFixe(abstractEnum):
     VALUE_TO_LABEL = formats.DEPARTEMENTS
-    DEFAULT_VALUE = "00"
 
 
 class DepartementEditable(abstractEnumEditable):
     VALEURS_LABELS = sorted((i, i + " " + v) for i, v in formats.DEPARTEMENTS.items())
-    DEFAULT_VALUE = '00'
 
 
 class SexeFixe(abstractEnum):
     VALUE_TO_LABEL = formats.SEXES
 
 
-
 class SexeEditable(abstractEnumEditable):
     VALEURS_LABELS = sorted((k, v) for k, v in formats.SEXES.items())
-    DEFAULT_VALUE = "F"
 
 
 class ModePaiementFixe(abstractEnum):
     VALUE_TO_LABEL = formats.MODE_PAIEMENT
-    DEFAULT_VALUE = "cheque"
-
 
 class ModePaiementEditable(abstractEnumEditable):
     VALEURS_LABELS = sorted([(k, v) for k, v in formats.MODE_PAIEMENT.items()])
-    DEFAULT_VALUE = "cheque"
 
 
 # ------------- Simple string-like field -------------

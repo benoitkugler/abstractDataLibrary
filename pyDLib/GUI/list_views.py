@@ -1,5 +1,5 @@
 # coding: utf-8
-from typing import List, Tuple
+from typing import List, Tuple, Optional
 
 from PyQt5.QtCore import Qt, pyqtSignal, QAbstractTableModel, QModelIndex
 from PyQt5.QtGui import QFont, QBrush, QPaintEvent, QPainter
@@ -172,7 +172,7 @@ class InternalDataModel(abstractModel):
     If header is None, directly acces item data.
     """
 
-    def __init__(self, collection: groups.sortableListe, header: List):
+    def __init__(self, collection: groups.sortableListe, header: Optional[List[Optional[str]]]):
         header = header if header is not None else [None]
         super().__init__(header)
         self.collection = collection
@@ -662,14 +662,34 @@ class PseudoAccesCategorie(dict):
         return self.Id
 
 
+class abstractNewButton(QFrame):
+    data_changed = pyqtSignal(object)
+    LABEL = "Add"
+
+    def __init__(self, is_editable):
+        super().__init__()
+        self.is_editable = is_editable
+        self.setLayout(QHBoxLayout())
+        self.set_button()
+
+    def set_button(self):
+        b = QPushButton(self.LABEL)
+        b.clicked.connect(self.enter_edit)
+        b.setEnabled(self.is_editable)
+        self.layout().addWidget(b)
+
+    def enter_edit(self):
+        pass
+
+
 class abstractMutableList(QFrame):
     """Provides a view and acces to add or remove and element."""
 
     data_changed = pyqtSignal(list)
 
     LIST_PLACEHOLDER = "No items."
-    LIST_HEADER = []
-    BOUTON = None
+    LIST_HEADER: Optional[List[str]] = []
+    BOUTON = abstractNewButton
 
     @staticmethod
     def from_list(liste):
