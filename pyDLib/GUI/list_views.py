@@ -3,14 +3,16 @@ from typing import List, Tuple, Optional, Type
 
 from PyQt5.QtCore import Qt, pyqtSignal, QAbstractTableModel, QModelIndex
 from PyQt5.QtGui import QFont, QBrush, QPaintEvent, QPainter
-from PyQt5.QtWidgets import QAbstractItemView, QTableView, \
-    QAbstractScrollArea, QFrame, QLabel, QGridLayout, QLineEdit, QPushButton, QHeaderView, QVBoxLayout, QSizePolicy
+from PyQt5.QtWidgets import (QAbstractItemView, QTableView,
+                             QAbstractScrollArea, QFrame, QLabel, QGridLayout, QLineEdit, QPushButton, QHeaderView, QVBoxLayout, QSizePolicy,
+                             QHBoxLayout)
 
 from pyDLib.Core.groups import sortableListe
 from . import Color, PARAMETERS, fenetres, Icons
 from ..Core import formats, groups, data_model, controller
 
 MIN_CHAR_SEARCH = data_model.MIN_CHAR_SEARCH
+
 
 def _custom_font(is_bold=False, is_italic=False):
     font = QFont()
@@ -109,7 +111,8 @@ class abstractModel(QAbstractTableModel):
         return self.RENDERER.data(attr, value, info, role)
 
     def headerData(self, section: int, orientation: Qt.Orientation, role=None):
-        attribut = (orientation == Qt.Horizontal) and self.header[section] or None
+        attribut = (orientation ==
+                    Qt.Horizontal) and self.header[section] or None
         return self.RENDERER.headerData(section, orientation, role, attribut, self.sort_state)
 
     def flags(self, index: QModelIndex):
@@ -143,7 +146,8 @@ class abstractModel(QAbstractTableModel):
 
     def _update(self):
         """Emit dataChanged signal on all cells"""
-        self.dataChanged.emit(self.createIndex(0, 0), self.createIndex(len(self.collection), len(self.header)))
+        self.dataChanged.emit(self.createIndex(0, 0), self.createIndex(
+            len(self.collection), len(self.header)))
 
     def _reset(self):
         """Emit resetModel """
@@ -159,7 +163,7 @@ class abstractModel(QAbstractTableModel):
         row = index.row() if hasattr(index, "row") else index
         try:
             return self.collection[row]
-        except IndexError: #invalid index for exemple
+        except IndexError:  # invalid index for exemple
             return None
 
     def set_collection(self, collection):
@@ -192,7 +196,8 @@ class InternalDataModel(abstractModel):
         """
         row = index.row() if hasattr(index, "row") else index
         self.collection[row] = new_item
-        self.dataChanged.emit(self.index(row, 0), self.index(row, self.rowCount() - 1))
+        self.dataChanged.emit(self.index(
+            row, 0), self.index(row, self.rowCount() - 1))
 
 
 class ExternalDataModel(abstractModel):
@@ -212,7 +217,8 @@ class ExternalDataModel(abstractModel):
         return self.collection_hook()
 
     def set_collection(self, collection):
-        raise NotImplementedError("ExternalDataModel does not own it's collection !")
+        raise NotImplementedError(
+            "ExternalDataModel does not own it's collection !")
 
     def set_data(self, index, value):
         """Uses given data setter, and emit modelReset signal"""
@@ -305,7 +311,8 @@ class abstractList(QTableView):
         self.setObjectName("list-view")
         self.setModel(model)
 
-        self.horizontalHeader().sectionClicked.connect(self.on_sort)  # sort on header click
+        self.horizontalHeader().sectionClicked.connect(
+            self.on_sort)  # sort on header click
         self.horizontalHeader().setStretchLastSection(True)
 
         self.verticalHeader().setVisible(self.VERTICAL_HEADER_VISIBLE)
@@ -318,8 +325,9 @@ class abstractList(QTableView):
         self.setSelectionBehavior(self.SELECTION_BEHAVIOR)
         self.setSelectionMode(self.SELECTION_MODE)
 
-        self.setSizeAdjustPolicy(QAbstractScrollArea.AdjustToContentsOnFirstShow)
-        self.setMinimumSize(self.MIN_WIDTH,self.MIN_HEIGHT)
+        self.setSizeAdjustPolicy(
+            QAbstractScrollArea.AdjustToContentsOnFirstShow)
+        self.setMinimumSize(self.MIN_WIDTH, self.MIN_HEIGHT)
         if self.MAX_HEIGHT:
             self.setMaximumHeight(self.MAX_HEIGHT)
         if self.MAX_WIDTH:
@@ -337,10 +345,13 @@ class abstractList(QTableView):
         """Add resize behavior on edit"""
         delegate = self.DELEGATE_CLASS(self)
         self.setItemDelegate(delegate)
-        delegate.sizeHintChanged.connect(lambda index: self.resizeRowToContents(index.row()))
+        delegate.sizeHintChanged.connect(
+            lambda index: self.resizeRowToContents(index.row()))
         if self.RESIZE_COLUMN:
-            delegate.sizeHintChanged.connect(lambda index: self.resizeColumnToContents(index.column()))
-        delegate.closeEditor.connect(lambda ed: self.resizeRowToContents(delegate.row_done_))
+            delegate.sizeHintChanged.connect(
+                lambda index: self.resizeColumnToContents(index.column()))
+        delegate.closeEditor.connect(
+            lambda ed: self.resizeRowToContents(delegate.row_done_))
 
     def model(self) -> abstractModel:
         return super(abstractList, self).model()
@@ -381,7 +392,7 @@ class abstractList(QTableView):
         if len(l) > 0:
             return self.model().get_item(l[0])
 
-    def search(self,pattern):
+    def search(self, pattern):
         """Intented for main list, which should use interface search"""
         raise NotImplementedError
 
@@ -398,13 +409,13 @@ class MultiSelectList(abstractList):
         col = groups.sortableListe(PseudoAccesCategorie(n) for n in l)
         return MultiSelectModel(col, header)
 
-
     def model(self) -> MultiSelectModel:
         return super(MultiSelectList, self).model()
 
     def __init__(self, model: MultiSelectModel):
         super().__init__(model)
-        model.dataChanged.connect(lambda : self.data_changed.emit(self.get_data()))
+        model.dataChanged.connect(
+            lambda: self.data_changed.emit(self.get_data()))
         self.setProperty('with_checkbox', True)
         self.setWordWrap(True)
 
@@ -478,7 +489,8 @@ class abstractMainList(abstractList):
         self.interface.add_reset_function(self.model()._reset)
 
     def cree_model(self):
-        model = ExternalDataModel(self.get_collection, self.set_data, self.ENTETE)
+        model = ExternalDataModel(
+            self.get_collection, self.set_data, self.ENTETE)
         return model
 
     def get_collection(self) -> groups.Collection:
@@ -494,7 +506,6 @@ class abstractMainList(abstractList):
             return
         self.selectRow(row_index)
         self.on_click(self.model().index(row_index, 0))
-
 
 
 ## -------------  Id search widgets  ------------- ##
@@ -522,7 +533,8 @@ class abstractAccesId(fenetres.Window):
         self.entry = QLineEdit()
         self.entry.setPlaceholderText(self.SEARCH_PLACEHOLDER)
 
-        self.choices_view = SearchList(self.LIST_ENTETE, placeholder=self.LIST_PLACEHOLDER)
+        self.choices_view = SearchList(
+            self.LIST_ENTETE, placeholder=self.LIST_PLACEHOLDER)
 
         self.entry.textChanged.connect(self.on_search)  # On search
 
@@ -616,11 +628,12 @@ class SearchField(QLineEdit):
     """Lineedit + reset button.
     Uses search_hook to actually performs the search. Calls it with None to reset.
     """
-    def __init__(self,search_hook,placeholder = "Search...",tooltip= "Reset"):
+
+    def __init__(self, search_hook, placeholder="Search...", tooltip="Reset"):
         super(SearchField, self).__init__()
         self.setPlaceholderText(placeholder)
         self.setClearButtonEnabled(True)
-        self.textChanged.connect(lambda s : search_hook(s or None))
+        self.textChanged.connect(lambda s: search_hook(s or None))
 
 
 class CadreView(QFrame):
@@ -648,8 +661,8 @@ class CadreView(QFrame):
         """Should return control widgets"""
         return
 
-    def get_search_field(self,**kwargs):
-        return SearchField(self.view.search,**kwargs)
+    def get_search_field(self, **kwargs):
+        return SearchField(self.view.search, **kwargs)
 
     def set_title(self, t):
         self.label.setText(t)
@@ -692,7 +705,7 @@ class abstractMutableList(QFrame):
 
     LIST_PLACEHOLDER = "No items."
     LIST_HEADER: Optional[List[str]] = []
-    BOUTON:Type[abstractNewButton] = abstractNewButton
+    BOUTON: Type[abstractNewButton] = abstractNewButton
 
     @staticmethod
     def from_list(liste):
@@ -702,15 +715,17 @@ class abstractMutableList(QFrame):
         super().__init__()
         collection = sortableListe() if collection is None else collection
         self.view = self._create_view(collection, is_editable)
-        self.view.model().modelReset.connect(lambda: self.data_changed.emit(self.get_data()))
-        self.view.model().dataChanged.connect(lambda: self.data_changed.emit(self.get_data()))
+        self.view.model().modelReset.connect(
+            lambda: self.data_changed.emit(self.get_data()))
+        self.view.model().dataChanged.connect(
+            lambda: self.data_changed.emit(self.get_data()))
 
         add_button = self.BOUTON(is_editable, *button_args)
         add_button.data_changed.connect(self.on_add)
         self.add_button = add_button
 
         layout = QVBoxLayout(self)
-        layout.setContentsMargins(0,0,0,0)
+        layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(0)
         layout.addWidget(self.view)
         if is_editable:
@@ -732,4 +747,3 @@ class abstractMutableList(QFrame):
 
     def get_data(self):
         return self.view.model().collection
-
