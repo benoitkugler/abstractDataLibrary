@@ -2,12 +2,13 @@
 import json
 import logging
 import re
-from typing import Optional, Union, Any
+from typing import Optional, Union, Any, Set
 
 from . import StructureError
 from . import groups, sql, formats, security
 
 MIN_CHAR_SEARCH = 2
+
 
 class abstractAcces:
     """Proxy object of one entity of a table.
@@ -15,16 +16,16 @@ class abstractAcces:
     storage on database is made through `modifications` attribute, which stores dumped datas
     """
 
-    TABLE = None
+    TABLE = ""
     """name of table acces refers to"""
 
-    FIELDS_OPTIONS = set()
+    FIELDS_OPTIONS: Set[str] = set()
     """Fields names of data grouped in the DB, which should be still be acceded as one field"""
 
     modifications: dict
-    Id: Union[int, str]
+    Id: Union[None, int, str]
 
-    def __init__(self, base: 'abstractBase', Id: Optional[Union[str, int]]) -> None:
+    def __init__(self, base: 'abstractBase', Id: Union[None, str, int]) -> None:
         """
 
         :param base: Pointer to the base
@@ -40,7 +41,8 @@ class abstractAcces:
             if "options" in self.modifications:
                 return self.modifications["options"].get(item, None)
             elif self.Id is not None:
-                options = getattr(self.base, self.TABLE)[self.Id].get("options", {}) or {}
+                options = getattr(self.base, self.TABLE)[
+                    self.Id].get("options", {}) or {}
                 return options.get(item, None)
             else:
                 return None
@@ -55,7 +57,7 @@ class abstractAcces:
     def modifie(self, key: str, value: Any) -> None:
         """Store the modification. `value` should be dumped in DB compatible format."""
         if key in self.FIELDS_OPTIONS:
-            self.modifie_options(key,value)
+            self.modifie_options(key, value)
         else:
             self.modifications[key] = value
 
@@ -81,13 +83,11 @@ class abstractAcces:
     def __str__(self):
         return f"Acces of table {self.TABLE} with id {self.Id} and modifications {self.modifications}"
 
-    def modifie_options(self,field_option,value):
+    def modifie_options(self, field_option, value):
         """Set options in modifications.
         All options will be stored since it should be grouped in the DB."""
         options = dict(self["options"] or {}, **{field_option: value})
         self.modifications["options"] = options
-
-
 
 
 def _convert_id(i):
@@ -127,7 +127,6 @@ class abstractDictTable(dict):
         else:
             return cls._from_dict_dict(data)
 
-
     def __init__(self, data):
         super().__init__(data or {})
 
@@ -154,7 +153,8 @@ class abstractDictTable(dict):
         if len(pattern) >= MIN_CHAR_SEARCH:  # Needed chars.
             sub_patterns = pattern.split(" ")
             try:
-                regexps = tuple(re.compile(sub_pattern, flags=re.I) for sub_pattern in sub_patterns)
+                regexps = tuple(re.compile(sub_pattern, flags=re.I)
+                                for sub_pattern in sub_patterns)
             except re.error:
                 return groups.Collection()
 
@@ -183,9 +183,10 @@ class abstractDictTable(dict):
         Ac = self.ACCES
         return groups.Collection(Ac(base, i) for i in self if criteria(Ac(base, i)))
 
-    def to_collection(self,base):
+    def to_collection(self, base):
         Ac = self.ACCES
         return groups.Collection(Ac(base, i) for i in self)
+
 
 class abstractListTable(list):
     """Represents one table : list [dict_attributes]"""
@@ -210,7 +211,6 @@ class abstractBase:
 
     LOCAL_DB_PATH = None
     """Local file path"""
-
 
     @classmethod
     def load_from_db(cls, callback_etat=print, out=None):
@@ -240,7 +240,8 @@ class abstractBase:
         dic = self.decode_json_str(s)
         new_dic = {}
         for table_name, (header, rows) in dic.items():
-            newl = [{c: ligne[i] for i, c in enumerate(header)} for ligne in rows]
+            newl = [{c: ligne[i]
+                     for i, c in enumerate(header)} for ligne in rows]
             new_dic[table_name] = newl
         return new_dic
 
@@ -261,12 +262,12 @@ class abstractBase:
                 s = security.protege_data(b, False)
         except (FileNotFoundError, KeyError):
             logging.exception(cls.__name__)
-            raise StructureError("Erreur dans le chargement de la sauvegarde locale !")
+            raise StructureError(
+                "Erreur dans le chargement de la sauvegarde locale !")
         else:
             return cls(cls.decode_json_str(s))
 
-
-    def __init__(self,datas=None):
+    def __init__(self, datas=None):
         """
         Creates tables from data.
         :param datas: one of
@@ -318,5 +319,3 @@ class abstractBase:
         except (FileNotFoundError):
             logging.exception(self.__class__.__name__)
             raise StructureError("Chemin de sauvegarde introuvable !")
-
-
