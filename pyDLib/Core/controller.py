@@ -2,7 +2,7 @@
 import json
 import logging
 import os
-from typing import Dict
+from typing import Dict, Type, List
 
 from . import data_model, groups, formats, sql, threads, security
 from . import init_all, StructureError
@@ -24,10 +24,10 @@ class abstractInterface:
     It's up to the interface to choose between a soft update or a hard one (with reset)
     """
 
-    ACCES = None
+    ACCES:Type[data_model.abstractAcces] = data_model.abstractAcces
     """Default acces. Used in the convenient function get_acces"""
 
-    CALLBACKS = []
+    CALLBACKS:List[str] = []
     """Functions that a GUI module should provide. 
     Note : a callback update_toolbar should be also set (by the mai GUI application)"""
 
@@ -38,7 +38,7 @@ class abstractInterface:
     collection: groups.Collection
     main: 'abstractInterInterfaces'
 
-    def __init__(self, main: 'abstractInterface', permission):
+    def __init__(self, main: 'abstractInterInterfaces', permission):
         """
         Constructeur.
 
