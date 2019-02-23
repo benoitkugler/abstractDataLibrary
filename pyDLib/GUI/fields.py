@@ -4,12 +4,12 @@ ASSOCIATION should be updated with custom widgets, since common.abstractDetails 
 import datetime
 import re
 from collections import defaultdict
-from typing import List
+from typing import List, Any
 
 from PyQt5.QtCore import pyqtSignal, Qt, QPoint
 from PyQt5.QtGui import QColor, QPen, QBrush, QIcon
-from PyQt5.QtWidgets import QFrame, QHBoxLayout, QPushButton, QLineEdit, QLabel, QComboBox, QSpinBox, QDoubleSpinBox, \
-    QCheckBox, QCompleter, QGridLayout, QVBoxLayout, QPlainTextEdit, QStyledItemDelegate, QToolTip
+from PyQt5.QtWidgets import (QFrame, QHBoxLayout, QPushButton, QLineEdit, QLabel, QComboBox, QSpinBox, QDoubleSpinBox,
+                             QCheckBox, QCompleter, QGridLayout, QVBoxLayout, QPlainTextEdit, QStyledItemDelegate, QToolTip)
 
 from . import list_views, clear_layout, Icons
 from ..Core import formats
@@ -52,13 +52,14 @@ class NouveauTelephone(list_views.abstractNewButton):
             self.set_button()
         else:
             self.entree.selectAll()
-            QToolTip.showText(self.entree.mapToGlobal(QPoint(0, 10)), "Numéro invalide")
+            QToolTip.showText(self.entree.mapToGlobal(
+                QPoint(0, 10)), "Numéro invalide")
 
 
 class Tels(list_views.abstractMutableList):
 
     LIST_PLACEHOLDER = "Aucun numéro."
-    LIST_HEADER: List[str] = []
+    LIST_HEADER = None
 
     BOUTON = NouveauTelephone
 
@@ -122,7 +123,8 @@ class abstractEnumEditable(QComboBox):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.set_choix(self.VALEURS_LABELS)
-        self.currentIndexChanged.connect(lambda i: self.data_changed.emit(self.currentData()))
+        self.currentIndexChanged.connect(
+            lambda i: self.data_changed.emit(self.currentData()))
 
     def set_choix(self, choix):
         self.places = {}
@@ -150,7 +152,8 @@ class DepartementFixe(abstractEnum):
 
 
 class DepartementEditable(abstractEnumEditable):
-    VALEURS_LABELS = sorted((i, i + " " + v) for i, v in formats.DEPARTEMENTS.items())
+    VALEURS_LABELS = sorted((i, i + " " + v)
+                            for i, v in formats.DEPARTEMENTS.items())
 
 
 class SexeFixe(abstractEnum):
@@ -163,6 +166,7 @@ class SexeEditable(abstractEnumEditable):
 
 class ModePaiementFixe(abstractEnum):
     VALUE_TO_LABEL = formats.MODE_PAIEMENT
+
 
 class ModePaiementEditable(abstractEnumEditable):
     VALEURS_LABELS = sorted([(k, v) for k, v in formats.MODE_PAIEMENT.items()])
@@ -266,6 +270,7 @@ class EurosEditable(QDoubleSpinBox):
         v = self.value()
         return v if v != -1 else None
 
+
 class BoolEditable(QFrame):
     data_changed = pyqtSignal(bool)
 
@@ -298,6 +303,7 @@ class BoolEditable(QFrame):
 class DefaultEditable(QLineEdit):
     data_changed = pyqtSignal(str)
     MAX_LENGTH = None
+
     def __init__(self, parent=None, completion=[]):
         super().__init__(parent)
         self.textChanged.connect(self.data_changed.emit)
@@ -389,9 +395,12 @@ class DateEditable(QFrame):
         layout.addWidget(m, 0, 1)
         layout.addWidget(a, 0, 2, 1, 2)
 
-        j.valueChanged.connect(lambda v: self.data_changed.emit(self.get_data()))
-        m.valueChanged.connect(lambda v: self.data_changed.emit(self.get_data()))
-        a.valueChanged.connect(lambda v: self.data_changed.emit(self.get_data()))
+        j.valueChanged.connect(
+            lambda v: self.data_changed.emit(self.get_data()))
+        m.valueChanged.connect(
+            lambda v: self.data_changed.emit(self.get_data()))
+        a.valueChanged.connect(
+            lambda v: self.data_changed.emit(self.get_data()))
         a.editingFinished.connect(self.on_editing)
         self.ws = (a, m, j)
 
@@ -405,7 +414,6 @@ class DateEditable(QFrame):
             return
         self._change_year_text_color(not current_year < 100)
         self.ws[0].setValue(current_year)
-
 
     def get_data(self):
         d = [self.ws[0].value(), self.ws[1].value(), self.ws[2].value()]
@@ -474,7 +482,6 @@ class DateRange(QFrame):
         self.fin.set_data(v[1])
 
 
-
 class Texte(QPlainTextEdit):
     data_changed = pyqtSignal(str)
 
@@ -485,7 +492,8 @@ class Texte(QPlainTextEdit):
         self.setMinimumWidth(150)
         self.setPlaceholderText(placeholder)
         self.setReadOnly(not is_editable)
-        self.textChanged.connect(lambda: self.data_changed.emit(self.toPlainText()))
+        self.textChanged.connect(
+            lambda: self.data_changed.emit(self.toPlainText()))
 
     def get_data(self):
         return self.toPlainText()
@@ -499,7 +507,7 @@ class OptionsButton(QPushButton):
     CLASS_PANEL_OPTIONS is responsible for doing the actual modification"""
 
     TITLE = "Advanced options"
-    CLASS_PANEL_OPTIONS = None
+    CLASS_PANEL_OPTIONS:Any = None
 
     options_changed = pyqtSignal()
 
@@ -516,8 +524,6 @@ class OptionsButton(QPushButton):
 
     def set_data(self, *args):
         pass
-
-
 
 
 ###---------------------------- Wrappers---------------------------- ###
@@ -579,6 +585,7 @@ def DateHeure(value, is_editable):
 def OptionnalText(value, is_editable):
     return _get_widget(is_editable and OptionnalTextEditable or DefaultFixe, value)
 
+
 """Correspondance field -> widget (callable)"""
 TYPES_WIDGETS = defaultdict(
     lambda: Default,
@@ -638,7 +645,6 @@ class delegateAttributs(QStyledItemDelegate):
 
     size_hint_: tuple
 
-
     def __init__(self, parent):
         QStyledItemDelegate.__init__(self, parent)
         self.size_hint_ = None
@@ -650,7 +656,8 @@ class delegateAttributs(QStyledItemDelegate):
         painter.save()
         proportion = min(proportion, 100)
         color = QColor(0, 255 * proportion / 100, 100 - proportion)
-        painter.setPen(QPen(color, 0.5, Qt.SolidLine, Qt.RoundCap, Qt.RoundJoin))
+        painter.setPen(QPen(color, 0.5, Qt.SolidLine,
+                            Qt.RoundCap, Qt.RoundJoin))
         painter.setBackgroundMode(Qt.OpaqueMode)
         painter.setBackground(QBrush(color))
         painter.setBrush(QBrush(color))
