@@ -1,5 +1,5 @@
 # coding: utf-8
-from typing import List, Tuple, Optional
+from typing import List, Tuple, Optional, Type
 
 from PyQt5.QtCore import Qt, pyqtSignal, QAbstractTableModel, QModelIndex
 from PyQt5.QtGui import QFont, QBrush, QPaintEvent, QPainter
@@ -692,7 +692,7 @@ class abstractMutableList(QFrame):
 
     LIST_PLACEHOLDER = "No items."
     LIST_HEADER: Optional[List[str]] = []
-    BOUTON = abstractNewButton
+    BOUTON:Type[abstractNewButton] = abstractNewButton
 
     @staticmethod
     def from_list(liste):
