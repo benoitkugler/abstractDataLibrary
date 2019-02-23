@@ -518,7 +518,7 @@ class abstractAccesId(fenetres.Window):
 
     WINDOW_TITLE = "Search"
 
-    LIST_ENTETE = []
+    LIST_ENTETE: List[str] = []
     LIST_PLACEHOLDER = "No items found."
 
     SEARCH_PLACEHOLDER = f"Please type at least {MIN_CHAR_SEARCH} characters..."

@@ -2,7 +2,7 @@
 import json
 import logging
 import re
-from typing import Optional, Union, Any, Set
+from typing import Optional, Union, Any, Set, Dict, Type
 
 from . import StructureError
 from . import groups, sql, formats, security
@@ -140,11 +140,8 @@ class abstractDictTable(dict):
 
     def base_recherche_rapide(self, base, pattern, to_string_hook=None):
         """
-        Search pattern in string build from entries.
-
-        :param pattern: String to search for
-        :param to_string_hook: Callable dict -> str to map record to string. Default to _record_to_string
-        :return:
+        Return a collection of access matching `pattern`.
+        `to_string_hook` is an optionnal callable dict -> str to map record to string. Default to _record_to_string
         """
         Ac = self.ACCES
         if pattern == "*":
@@ -207,7 +204,8 @@ class abstractBase:
     """ Tables structure. Dict { table_name : table_class }.
     table_class should inherit abstractDictTable or abstract ListTable"""
 
-    TABLES = {}
+    TABLES: Dict[str, Union[Type[abstractDictTable],
+                            Type[abstractListTable]]] = {}
 
     LOCAL_DB_PATH = None
     """Local file path"""
