@@ -13,7 +13,6 @@ class abstractModule(QFrame):
     """Asks for bottom right popup displaying given string, title (maybe none)"""
 
     status_bar: QStatusBar
-    interface: controller.abstractInterface
 
     def __init__(self, status_bar, interface):
         super().__init__()
@@ -44,11 +43,14 @@ class abstractModule(QFrame):
                 pass
             else:
                 setattr(self.interface.callbacks, action, f)
-        manquantes = [a for a in self.interface.CALLBACKS if not a in dic_functions]
+        manquantes = [
+            a for a in self.interface.CALLBACKS if not a in dic_functions]
         if not manquantes:
-            logging.debug(f"{self.__class__.__name__} : Tous les callbacks demandés sont fournis.")
+            logging.debug(
+                f"{self.__class__.__name__} : Tous les callbacks demandés sont fournis.")
         else:
-            logging.warning(f"{self.__class__.__name__} didn't set asked callbacks {manquantes}")
+            logging.warning(
+                f"{self.__class__.__name__} didn't set asked callbacks {manquantes}")
 
     def show_local_file(self, filepath):
         QDesktopServices.openUrl(QUrl.fromLocalFile(filepath))

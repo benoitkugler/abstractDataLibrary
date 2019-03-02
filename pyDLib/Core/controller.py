@@ -182,8 +182,8 @@ class abstractInterface:
 
         def choisi(ac):
             for cat, li in criteres.items():
-                v = ac[cat] or formats.ASSOCIATION[cat][3]
-                if not v in li:
+                v = ac[cat]
+                if not (v in li):
                     return False
             return True
 
