@@ -655,7 +655,10 @@ class delegateAttributs(QStyledItemDelegate):
         rect = option.rect
         painter.save()
         proportion = min(proportion, 100)
-        color = QColor(0, 255 * proportion / 100, 100 - proportion)
+        rs, vs, bs = (30,64,55) # start
+        re, ve, be  = (153,242,200) # end
+        t = proportion / 100
+        color = QColor( rs + t*(re - rs), vs + t*(ve - vs), bs + t*(be - bs))
         painter.setPen(QPen(color, 0.5, Qt.SolidLine,
                             Qt.RoundCap, Qt.RoundJoin))
         painter.setBackgroundMode(Qt.OpaqueMode)

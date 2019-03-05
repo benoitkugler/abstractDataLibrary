@@ -300,6 +300,8 @@ class abstractList(QTableView):
     SELECTION_BEHAVIOR = QAbstractItemView.SelectRows
     SELECTION_MODE = QAbstractItemView.SingleSelection
 
+    ALTERNATING_ROW_COLORS = True
+
     DELEGATE_CLASS = None
     """If given, use this class as delegate"""
 
@@ -321,7 +323,7 @@ class abstractList(QTableView):
         self.doubleClicked.connect(self.on_double_click)
         self.clicked.connect(self.on_click)
 
-        self.setAlternatingRowColors(True)
+        self.setAlternatingRowColors(self.ALTERNATING_ROW_COLORS)
         self.setSelectionBehavior(self.SELECTION_BEHAVIOR)
         self.setSelectionMode(self.SELECTION_MODE)
 
