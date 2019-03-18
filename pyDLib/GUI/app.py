@@ -37,14 +37,17 @@ class abstractMainTabs(QTabWidget):
         self.setObjectName("main-tabs")
         self.tabBar().setObjectName("main-tabs-bar")
 
-        self.currentChanged.connect(lambda i: self.interface_changed.emit(self.get_interface(i)))
+        self.currentChanged.connect(
+            lambda i: self.interface_changed.emit(self.get_interface(i)))
 
         self._index_interfaces = []
-        logging.info("Loading of modules : " + ", ".join(self.interfaces.keys()))
+        logging.info("Loading of modules : " +
+                     ", ".join(self.interfaces.keys()))
 
         for module_name in sorted(self.interfaces.keys()):
             i = self.interfaces[module_name]
-            i.set_callback("grab_focus", lambda m=module_name: self.set_current_interface(m))
+            i.set_callback(
+                "grab_focus", lambda m=module_name: self.set_current_interface(m))
             classe, label = self.Id_to_Classes[module_name]
             self._index_interfaces.append(module_name)
             onglet = classe(status_bar, i)
@@ -57,6 +60,7 @@ class abstractMainTabs(QTabWidget):
     def set_current_interface(self, module_name):
         index = self._index_interfaces.index(module_name)
         self.setCurrentIndex(index)
+
 
 class abstractToolBar(QToolBar):
     """Main tool bar, constiting in two parts :
@@ -134,7 +138,8 @@ class Application(QMainWindow):
         self._set_callbacks()
 
     def _set_callbacks(self):
-        self.theory_main.set_callback("copy_to_clipboard", lambda text: QApplication.clipboard().setText(text))
+        self.theory_main.set_callback(
+            "copy_to_clipboard", lambda text: QApplication.clipboard().setText(text))
 
     def _initUI(self):
         self.toolbar = None
@@ -166,7 +171,7 @@ class Application(QMainWindow):
         else:
             self.statusBar().showMessage("Données chargées depuis le serveur.", 5000)
 
-    def init_tabs(self,maximized=True):
+    def init_tabs(self, maximized=True):
         self.theory_main.load_modules()
 
         tb = self.TOOLBAR_CLASS(self)
@@ -176,10 +181,12 @@ class Application(QMainWindow):
         self.tabs.interface_changed.connect(tb.set_interface)
         self.tabs.popup_asked.connect(self.show_popup)
 
-        tb.set_interface(self.theory_main.interfaces[self.tabs._index_interfaces[0]])
+        tb.set_interface(
+            self.theory_main.interfaces[self.tabs._index_interfaces[0]])
 
         self.centralWidget().addWidget(self.tabs)
         self.centralWidget().setCurrentIndex(1)
+
         if maximized:
             self.showMaximized()
 
@@ -196,7 +203,8 @@ class Application(QMainWindow):
         if self.current_popup is None:
             return
         p_window = QPoint(self.size().width(), self.size().height())
-        p_popup = QPoint(self.current_popup.size().width(), self.current_popup.size().height())
+        p_popup = QPoint(self.current_popup.size().width(),
+                         self.current_popup.size().height())
         tb_w = self.toolbar.size().width() + 5
         p = self.mapToGlobal(p_window - p_popup - QPoint(tb_w, 0))
         self.current_popup.move(p)
@@ -249,10 +257,13 @@ class Application(QMainWindow):
             url, with_config = f.retour
             self.theory_main.update_credences(url)
             if with_config:
-                self.progress_bar = common.LoadingMonitor("Configuration", self)
-                self.progress_bar.setLabel("Mise à jour des fichiers de configuration...")
+                self.progress_bar = common.LoadingMonitor(
+                    "Configuration", self)
+                self.progress_bar.setLabel(
+                    "Mise à jour des fichiers de configuration...")
                 load_credences()
-                self.theory_main.update_configuration(self.progress_bar.monitor)
+                self.theory_main.update_configuration(
+                    self.progress_bar.monitor)
                 self.progress_bar.accept()
                 return True
 
@@ -291,13 +302,15 @@ class UpdateConfiguration(Window):
         L'<b>adresse</b> (URL) est celle du serveur où est stocké le fichier de 'crédences'.<br/>
         Les <b>fichiers de configuration</b> influent sur le style de l'interface du logiciel, ainsi que la présentation des documents émis.
         """
-        infos = "Adresse de chargement de la base : {} <br/>".format(Core.CREDENCES["FILES_URL"]["db"])
-        infos += "Nom de la base en accès direct : {} <br/>".format(Core.CREDENCES["DB"]['name'])
+        infos = "Adresse de chargement de la base : {} <br/>".format(
+            Core.CREDENCES["FILES_URL"]["db"])
+        infos += "Nom de la base en accès direct : {} <br/>".format(
+            Core.CREDENCES["DB"]['name'])
         details = json.dumps(Core.CREDENCES, indent=2).replace("\n", "<br/>")
         infos += f"Détails : {details}"
         try:
             url = Core.CREDENCES["FILES_URL"]["credences"]
-        except (KeyError,TypeError):
+        except (KeyError, TypeError):
             logging.exception("Credences download url not found !")
             url = ""
         self.url = QLineEdit(url)
@@ -318,5 +331,3 @@ class UpdateConfiguration(Window):
         with_config = self.with_config.isChecked()
         self.retour = url, with_config
         self.accept()
-
-
