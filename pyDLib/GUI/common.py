@@ -61,7 +61,20 @@ class ImportFile(QFileDialog):
         self.setFileMode(QFileDialog.ExistingFile)
         self.setViewMode(QFileDialog.List)
         if types:
-            self.setMimeTypeFilters(types)
+            # self.setMimeTypeFilters(types)
+            self.setNameFilter(self._get_name_filter(types))
+
+    def _get_name_filter(self, types):
+        glob_patterns = []
+        db = QMimeDatabase()
+        for ty in types:
+            mime:QMimeType = db.mimeTypeForName(ty)
+            if mime.isValid():
+                p = " ".join(mime.globPatterns())
+                glob_patterns.append(p)
+
+        return "Acceptés (" + " ".join(glob_patterns) + ")"
+
 
     def get_filename(self):
         if self.exec():
