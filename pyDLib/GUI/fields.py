@@ -478,6 +478,7 @@ class DateRange(QFrame):
         return self.debut.get_data(), self.fin.get_data()
 
     def set_data(self, v):
+        v = v or [None, None]
         self.debut.set_data(v[0])
         self.fin.set_data(v[1])
 
@@ -608,7 +609,7 @@ TYPES_WIDGETS = defaultdict(
     acquite=Booleen,
     is_acompte=Booleen,
     is_remboursement=Booleen,
-    reduc_special=Euros,
+    reduc_speciale=Euros,
     acompte_recu=Euros,
     valeur=Euros,
     total=Euros,
